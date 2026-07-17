@@ -3,15 +3,27 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>羽迹·深湾 — 候鸟栖息地地图与深湾气象</title>
-    <meta name="ebird-key" content="akg196iojfvr">
-    <!-- 高德地图 JS API 通过动态加载方式引入，见 utils/api.js -->
-    <script type="module" crossorigin src="/birds/assets/index-CBCtj4a_-v2.js"></script>
-    <link rel="stylesheet" crossorigin href="/birds/assets/index-DJNsTAI3.css">
-    <!-- 观鸟数据整合层 (iNaturalist / GBIF / eBird) -->
-    <script defer src="/birds/bird-data-layer.js"></script>
+    <title>羽迹·深湾 — 深圳湾候鸟与红树林科普</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
     <div id="app"></div>
+
+    <!-- 配置（高德 Key / AI 模式 在此调整） -->
+    <script src="./config.js"></script>
+    <!-- 物种知识库（所有功能共享数据） -->
+    <script src="./data/species.js"></script>
+    <!-- 工具 / 地图 / 各功能模块 -->
+    <script src="./js/util.js"></script>
+    <script src="./js/map.js"></script>
+    <script src="./js/infocard.js"></script>
+    <script src="./js/quiz.js"></script>
+    <script src="./js/messages.js"></script>
+    <script src="./js/ai.js"></script>
+    <script src="./js/share.js"></script>
+    <script src="./js/photo.js"></script>
+    <script src="./js/store.js"></script>
+    <script src="./js/app.js"></script>
   </body>
 </html>

@@ -476,14 +476,8 @@ const routes = [];
 const movingDots = [];
 
 ROUTE_DATA.forEach((data, idx) => {
-  const pts = data.waypoints.map(w => {
-    // 地面点
-    const p = latLngToVec3(w.lat, w.lng, EARTH_RADIUS);
-    // 弧线顶点（向外抬高）
-    const midIdx = Math.floor(data.waypoints.length / 2);
-    const isMid = data.waypoints.indexOf(w) > 0 && data.waypoints.indexOf(w) < data.waypoints.length - 1;
-    return p;
-  });
+  // 地面点（弧线抬高在下方采样阶段处理）
+  const pts = data.waypoints.map(w => latLngToVec3(w.lat, w.lng, EARTH_RADIUS));
 
   // CatmullRom 曲线
   const curve = new THREE.CatmullRomCurve3(pts);
@@ -690,9 +684,9 @@ function updateCard(route) {
   card.classList.add('visible');
 
   document.getElementById('species-name').textContent = d.emoji + ' ' + d.name;
-  document.getElementById('species-obs').textContent = ROUTE_DATA.length + ' 条航线';
-  document.getElementById('species-status').textContent = d.color;
-  document.getElementById('species-desc').textContent = '候鸟迁徙航线 · 三维可视化';
+  document.getElementById('species-obs').textContent = '距离 ' + d.distance;
+  document.getElementById('species-status').textContent = d.origin + ' → ' + d.dest;
+  document.getElementById('species-desc').textContent = d.desc;
   species.classList.add('visible');
 }
 
