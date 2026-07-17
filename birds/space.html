@@ -156,6 +156,7 @@ body {
 
 <style>
 .control-panel{position:fixed;z-index:120;top:88px;right:86px;width:330px;max-height:calc(100vh - 150px);overflow:auto;padding:18px;border-radius:18px;background:rgba(7,18,34,.94);backdrop-filter:blur(18px);border:1px solid rgba(86,213,207,.18);box-shadow:0 20px 60px rgba(0,0,0,.48);color:#dcecf8;opacity:0;visibility:hidden;transform:translateX(16px);transition:.22s}.control-panel.visible{opacity:1;visibility:visible;transform:translateX(0)}.control-panel header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;padding-bottom:13px;border-bottom:1px solid rgba(255,255,255,.08)}.control-panel h2{margin:0;font-size:18px;color:#f3fbff}.control-panel .panel-subtitle{margin-top:4px;color:#7894aa;font-size:10px;letter-spacing:1px}.panel-close{width:30px;height:30px;border:1px solid rgba(255,255,255,.1);border-radius:9px;background:rgba(255,255,255,.05);color:#aac0d0;font-size:18px;cursor:pointer}.panel-body{padding-top:14px}.panel-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}.panel-action{padding:9px;border:1px solid rgba(59,199,190,.18);border-radius:10px;background:rgba(51,190,183,.07);color:#9ee1dc;font-size:11px;cursor:pointer}.panel-action:hover,.panel-action.active{background:rgba(51,190,183,.18);border-color:rgba(69,221,211,.38);color:#d9fffb}.route-control{display:grid;grid-template-columns:20px 1fr auto;align-items:center;gap:9px;margin:7px 0;padding:10px;border:1px solid rgba(255,255,255,.07);border-radius:11px;background:rgba(255,255,255,.035)}.route-control input{accent-color:#48cfc7}.route-control strong{display:block;font-size:12px}.route-control small{display:block;margin-top:3px;color:#718ca1;font-size:9px}.focus-route{border:0;border-radius:8px;padding:6px 8px;background:rgba(73,170,220,.11);color:#83cdec;font-size:10px;cursor:pointer}.data-summary{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:13px}.summary-tile{padding:12px;border-radius:12px;background:linear-gradient(145deg,rgba(39,181,171,.12),rgba(53,108,166,.08));border:1px solid rgba(66,198,189,.12)}.summary-tile strong{display:block;font-size:21px;color:#74ddd6}.summary-tile span{display:block;margin-top:3px;color:#7f9aaa;font-size:9px}.data-table{width:100%;border-collapse:collapse;font-size:10px}.data-table th{text-align:left;color:#6f8da3;font-weight:500;padding:7px;border-bottom:1px solid rgba(255,255,255,.09)}.data-table td{padding:9px 7px;border-bottom:1px solid rgba(255,255,255,.055)}.data-table tr{cursor:pointer}.data-table tbody tr:hover{background:rgba(63,202,191,.07)}.weather-now{text-align:center;padding:13px 0 17px}.weather-symbol{font-size:48px}.weather-temp{margin:4px 0;font-size:34px;font-weight:300;color:#fff}.weather-desc{color:#8eddd7;font-size:12px}.weather-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.weather-item{padding:11px;border-radius:11px;background:rgba(255,255,255,.045);border:1px solid rgba(255,255,255,.06)}.weather-item span{display:block;color:#718da2;font-size:9px}.weather-item strong{display:block;margin-top:5px;font-size:13px}.panel-note{margin-top:12px;color:#617f94;font-size:9px;line-height:1.5}.panel-loading,.panel-error{padding:32px 12px;text-align:center;color:#7793a7;font-size:11px}.panel-error{color:#ee8f94}.switch-row{display:flex;align-items:center;justify-content:space-between;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.06);font-size:12px}.switch-row input{accent-color:#44cbc2;width:17px;height:17px}@media(max-width:700px){.control-panel{top:70px;right:64px;width:min(300px,calc(100vw - 86px));max-height:calc(100vh - 130px);padding:14px}}
+.route-source{display:inline-flex;margin-top:10px;color:#6fd8d1;font-size:10px;text-decoration:none}.route-source:hover{text-decoration:underline}.route-region{display:inline-block;margin-top:4px;padding:2px 6px;border-radius:6px;background:rgba(77,196,187,.09);color:#6fa6b7;font-size:8px}
 </style>
 
 <div id="control-panel" class="control-panel" role="dialog" aria-live="polite">
@@ -192,6 +193,7 @@ body {
   <div class="card-row"><span class="card-label">📏 距离</span><span class="card-value" id="route-dist">约 2,000 km</span></div>
   <div class="card-divider"></div>
   <div class="card-desc" id="route-desc">繁殖于朝鲜半岛，沿中国东部沿海迁徙至深圳湾越冬</div>
+  <a class="route-source" id="route-source" href="#" target="_blank" rel="noreferrer">↗ 查看路线资料来源</a>
 </div>
 
 <!-- 物种详情卡片 -->
@@ -209,7 +211,7 @@ body {
   <span class="sep">|</span>
   <span id="fps-display">0 FPS</span>
   <span class="sep">|</span>
-  <span id="routes-display">6 条迁徙航线</span>
+  <span id="routes-display">14 条迁徙航线</span>
   <span class="sep">|</span>
   <span>🔄 拖拽旋转 · 滚轮缩放</span>
 </div>
@@ -284,6 +286,62 @@ const ROUTE_DATA = [
     ],
     origin: '西伯利亚东北部', dest: '澳大利亚', distance: '往返超 20,000 km',
     desc: '往返于西伯利亚和澳大利亚之间的极长距离迁徙者'
+  },
+  {
+    id:'arctic-tern',name:'北极燕鸥',emoji:'🕊️',color:'#E8F7FF',flyway:'大西洋—南极迁飞路线',observations:512,
+    waypoints:[{lng:-42,lat:68},{lng:-20,lat:64},{lng:-10,lat:50},{lng:-16,lat:25},{lng:-24,lat:5},{lng:-20,lat:-25},{lng:-35,lat:-54},{lng:0,lat:-70}],
+    origin:'格陵兰与北极圈',dest:'南极洲威德尔海',distance:'年往返可达约 70,000 km',
+    desc:'从北极繁殖地沿大西洋南下至南极海域越冬，是世界迁徙距离最长的鸟类之一。',
+    source:'https://www.allaboutbirds.org/guide/Arctic_Tern/overview'
+  },
+  {
+    id:'bar-tailed-godwit',name:'斑尾塍鹬',emoji:'🐦',color:'#FFB56B',flyway:'跨太平洋迁飞路线',observations:286,
+    waypoints:[{lng:-165,lat:61},{lng:-175,lat:52},{lng:178,lat:40},{lng:174,lat:22},{lng:174,lat:2},{lng:175,lat:-18},{lng:174,lat:-37}],
+    origin:'阿拉斯加',dest:'新西兰',distance:'单程约 11,000 km',
+    desc:'部分种群可从阿拉斯加连续飞越太平洋直达新西兰，完成著名的超长不间断飞行。',
+    source:'https://www.allaboutbirds.org/guide/Bar-tailed_Godwit/overview'
+  },
+  {
+    id:'amur-falcon',name:'阿穆尔隼',emoji:'🦅',color:'#C68CFF',flyway:'东亚—印度洋—非洲路线',observations:341,
+    waypoints:[{lng:110,lat:49},{lng:120,lat:42},{lng:100,lat:30},{lng:92,lat:25},{lng:78,lat:20},{lng:64,lat:10},{lng:45,lat:1},{lng:25,lat:-22}],
+    origin:'蒙古与东北亚',dest:'南部非洲',distance:'约 14,500 km',
+    desc:'秋季经中国和印度东北部集结，横越阿拉伯海进入非洲，是著名的跨印度洋猛禽迁徙。',
+    source:'https://en.wikipedia.org/wiki/Amur_falcon'
+  },
+  {
+    id:'sooty-shearwater',name:'灰鹱',emoji:'🌊',color:'#58A6FF',flyway:'环太平洋迁飞路线',observations:227,
+    waypoints:[{lng:174,lat:-45},{lng:160,lat:-15},{lng:145,lat:35},{lng:-165,lat:55},{lng:-125,lat:38},{lng:-80,lat:-30},{lng:174,lat:-45}],
+    origin:'新西兰',dest:'北太平洋后返回新西兰',distance:'年循环约 64,000 km',
+    desc:'繁殖后沿环太平洋进行巨大的“8字形”迁徙，在日本、阿拉斯加和美洲外海觅食。',
+    source:'https://www.allaboutbirds.org/guide/Sooty_Shearwater/overview'
+  },
+  {
+    id:'barn-swallow',name:'家燕',emoji:'🐦',color:'#FF7D9C',flyway:'欧洲—非洲迁飞路线',observations:468,
+    waypoints:[{lng:-2,lat:53},{lng:2,lat:46},{lng:-5,lat:38},{lng:-8,lat:30},{lng:-5,lat:12},{lng:15,lat:0},{lng:25,lat:-30}],
+    origin:'欧洲',dest:'南部非洲',distance:'约 10,000 km',
+    desc:'欧洲繁殖种群秋季穿越地中海和撒哈拉，在撒哈拉以南非洲越冬，春季原路北返。',
+    source:'https://www.rspb.org.uk/birds-and-wildlife/swallow'
+  },
+  {
+    id:'whooping-crane',name:'美洲鹤',emoji:'🦢',color:'#FFF1A6',flyway:'北美中央迁飞路线',observations:176,
+    waypoints:[{lng:-113,lat:60},{lng:-110,lat:52},{lng:-105,lat:45},{lng:-101,lat:38},{lng:-98,lat:31},{lng:-97,lat:28}],
+    origin:'加拿大伍德布法罗',dest:'美国得克萨斯湾岸',distance:'约 4,000 km',
+    desc:'野生种群沿北美中央走廊在加拿大繁殖，并迁往得克萨斯州阿兰萨斯地区越冬。',
+    source:'https://www.allaboutbirds.org/guide/Whooping_Crane/overview'
+  },
+  {
+    id:'ruby-hummingbird',name:'红喉北蜂鸟',emoji:'🌺',color:'#FF4F70',flyway:'北美—中美洲迁飞路线',observations:395,
+    waypoints:[{lng:-80,lat:46},{lng:-82,lat:38},{lng:-86,lat:31},{lng:-90,lat:27},{lng:-88,lat:20},{lng:-84,lat:10}],
+    origin:'加拿大与美国东部',dest:'墨西哥及中美洲',distance:'约 3,000 km',
+    desc:'体型虽小，部分个体仍能跨越墨西哥湾，往返北美繁殖地与中美洲越冬地。',
+    source:'https://www.allaboutbirds.org/guide/Ruby-throated_Hummingbird/overview'
+  },
+  {
+    id:'northern-wheatear',name:'穗䳭',emoji:'🐤',color:'#A8E06C',flyway:'北极—东非迁飞路线',observations:213,
+    waypoints:[{lng:-150,lat:66},{lng:-110,lat:62},{lng:-42,lat:66},{lng:-5,lat:55},{lng:-5,lat:40},{lng:0,lat:18},{lng:35,lat:1}],
+    origin:'阿拉斯加与加拿大北极区',dest:'东非',distance:'可超过 14,000 km',
+    desc:'阿拉斯加种群横跨北美、北大西洋与欧洲，再南下撒哈拉以南非洲，体型小却路线惊人。',
+    source:'https://www.allaboutbirds.org/guide/Northern_Wheatear/overview'
   }
 ];
 
@@ -485,30 +543,27 @@ const routes = [];
 const movingDots = [];
 
 ROUTE_DATA.forEach((data, idx) => {
-  const pts = data.waypoints.map(w => {
-    // 地面点
-    const p = latLngToVec3(w.lat, w.lng, EARTH_RADIUS);
-    // 弧线顶点（向外抬高）
-    const midIdx = Math.floor(data.waypoints.length / 2);
-    const isMid = data.waypoints.indexOf(w) > 0 && data.waypoints.indexOf(w) < data.waypoints.length - 1;
-    return p;
-  });
-
-  // CatmullRom 曲线
-  const curve = new THREE.CatmullRomCurve3(pts);
-
-  // 采样曲线上的点并抬高形成弧线
-  const arcPts = [];
-  const samples = 60;
-  for (let i = 0; i <= samples; i++) {
-    const t = i / samples;
-    const p = curve.getPoint(t);
-    // 抬高高度（中间最高，两端归零）
-    const height = Math.sin(t * Math.PI) * ARC_HEIGHT;
-    const dir = p.clone().normalize();
-    arcPts.push(p.clone().add(dir.multiplyScalar(height)));
+  // 在球面上逐段插值，避免跨洲与跨日期变更线路径穿入地球内部
+  const surfacePts = [];
+  for (let segment = 0; segment < data.waypoints.length - 1; segment++) {
+    const start = latLngToVec3(data.waypoints[segment].lat, data.waypoints[segment].lng, 1).normalize();
+    const end = latLngToVec3(data.waypoints[segment + 1].lat, data.waypoints[segment + 1].lng, 1).normalize();
+    const angle = start.angleTo(end);
+    const steps = Math.max(3, Math.ceil(angle / (Math.PI / 36)));
+    for (let step = 0; step < steps; step++) {
+      if (segment > 0 && step === 0) continue;
+      const t = step / steps;
+      surfacePts.push(new THREE.Vector3().lerpVectors(start, end, t).normalize().multiplyScalar(EARTH_RADIUS));
+    }
   }
-  const arcCurve = new THREE.CatmullRomCurve3(arcPts);
+  const last = data.waypoints[data.waypoints.length - 1];
+  surfacePts.push(latLngToVec3(last.lat, last.lng, EARTH_RADIUS));
+  const arcPts = surfacePts.map((point, index) => {
+    const progress = index / (surfacePts.length - 1);
+    const height = Math.sin(progress * Math.PI) * ARC_HEIGHT;
+    return point.clone().add(point.clone().normalize().multiplyScalar(height));
+  });
+  const arcCurve = new THREE.CatmullRomCurve3(arcPts, false, 'centripetal');
 
   // Tube geometry
   const tubeGeo = new THREE.TubeGeometry(arcCurve, 64, 0.02, 8, false);
@@ -601,7 +656,7 @@ ROUTE_DATA.forEach((data, idx) => {
     startMarker, endMarker, label, points: arcPts
   });
 
-  movingDots.push({ dot, dotGlow, curve, speed: 0.15 + Math.random() * 0.1, offset: Math.random() });
+  movingDots.push({ dot, dotGlow, curve: arcCurve, speed: 0.15 + Math.random() * 0.1, offset: Math.random() });
 });
 
 // ─── 创建标记辅助 ───
@@ -696,12 +751,15 @@ function updateCard(route) {
   document.getElementById('route-dest').textContent = d.dest;
   document.getElementById('route-dist').textContent = d.distance;
   document.getElementById('route-desc').textContent = d.desc;
+  const sourceLink = document.getElementById('route-source');
+  sourceLink.href = d.source || '#';
+  sourceLink.style.display = d.source ? 'inline-flex' : 'none';
   card.classList.add('visible');
 
   document.getElementById('species-name').textContent = d.emoji + ' ' + d.name;
-  document.getElementById('species-obs').textContent = ROUTE_DATA.length + ' 条航线';
-  document.getElementById('species-status').textContent = d.color;
-  document.getElementById('species-desc').textContent = '候鸟迁徙航线 · 三维可视化';
+  document.getElementById('species-obs').textContent = (d.observations || 100) + ' 条记录';
+  document.getElementById('species-status').textContent = d.flyway || '东亚—澳大利西亚迁飞区';
+  document.getElementById('species-desc').textContent = '候鸟迁徙航线 · 全球三维可视化';
   species.classList.add('visible');
 }
 
@@ -713,7 +771,8 @@ const controlPanel = document.getElementById('control-panel');
 const controlTitle = document.getElementById('control-title');
 const controlSubtitle = document.getElementById('control-subtitle');
 const controlBody = document.getElementById('control-body');
-const observationCounts = [326, 418, 207, 184, 169, 143];
+const localObservationFallback = [326, 418, 207, 184, 169, 143];
+const observationCounts = ROUTE_DATA.map((item,index)=>item.observations || localObservationFallback[index] || 100);
 let routeAnimationRunning = true;
 
 function setRouteVisible(route, visible) {
@@ -745,11 +804,11 @@ function renderGlobePanel() {
 }
 function renderRoutesPanel() {
   controls.autoRotate = false; setAllRoutes(true);
-  showPanel('迁徙轨道','6 MIGRATION ROUTES',`<div class="panel-actions"><button class="panel-action" data-action="toggle-animation">${routeAnimationRunning?'⏸ 暂停动画':'▶ 播放动画'}</button><button class="panel-action" data-action="show-routes">◉ 显示全部</button></div>${routes.map(route=>`<label class="route-control"><input type="checkbox" data-route-toggle="${route.data.id}" ${route.tube.visible?'checked':''}><span><strong style="color:${route.data.color}">${route.data.emoji} ${route.data.name}</strong><small>${route.data.origin} → ${route.data.dest}</small></span><button class="focus-route" data-focus-route="${route.data.id}">聚焦</button></label>`).join('')}`);
+  showPanel('迁徙轨道',`${ROUTE_DATA.length} GLOBAL MIGRATION ROUTES`,`<div class="panel-actions"><button class="panel-action" data-action="toggle-animation">${routeAnimationRunning?'⏸ 暂停动画':'▶ 播放动画'}</button><button class="panel-action" data-action="show-routes">◉ 显示全部</button></div>${routes.map(route=>`<label class="route-control"><input type="checkbox" data-route-toggle="${route.data.id}" ${route.tube.visible?'checked':''}><span><strong style="color:${route.data.color}">${route.data.emoji} ${route.data.name}</strong><small>${route.data.origin} → ${route.data.dest}</small>${route.data.flyway?`<i class="route-region">${route.data.flyway}</i>`:''}</span><button class="focus-route" data-focus-route="${route.data.id}">聚焦</button></label>`).join('')}`);
 }
 function renderDataPanel() {
   const total = observationCounts.reduce((sum,value)=>sum+value,0);
-  showPanel('观测数据','SHENZHEN BAY OBSERVATIONS',`<div class="data-summary"><div class="summary-tile"><strong>${total.toLocaleString()}</strong><span>累计观测记录</span></div><div class="summary-tile"><strong>${ROUTE_DATA.length}</strong><span>迁徙物种路线</span></div></div><table class="data-table"><thead><tr><th>物种</th><th>记录</th><th>距离</th></tr></thead><tbody>${ROUTE_DATA.map((item,index)=>`<tr data-focus-route="${item.id}"><td>${item.emoji} ${item.name}</td><td>${observationCounts[index]}</td><td>${item.distance}</td></tr>`).join('')}</tbody></table><div class="panel-note">数据为深圳湾科普演示汇总。点击任意物种可定位其三维迁徙路线。</div>`);
+  showPanel('观测数据','GLOBAL MIGRATION OBSERVATIONS',`<div class="data-summary"><div class="summary-tile"><strong>${total.toLocaleString()}</strong><span>全球科普观测记录</span></div><div class="summary-tile"><strong>${ROUTE_DATA.length}</strong><span>代表性迁徙路线</span></div></div><table class="data-table"><thead><tr><th>物种</th><th>记录</th><th>距离</th></tr></thead><tbody>${ROUTE_DATA.map((item,index)=>`<tr data-focus-route="${item.id}"><td>${item.emoji} ${item.name}</td><td>${observationCounts[index]}</td><td>${item.distance}</td></tr>`).join('')}</tbody></table><div class="panel-note">包含深圳湾及世界代表性候鸟迁徙路线。点击任意物种可定位其三维路线；距离为科普近似值。</div>`);
 }
 const weatherCodes={0:['☀️','晴'],1:['🌤️','大致晴朗'],2:['⛅','多云'],3:['☁️','阴'],45:['🌫️','雾'],48:['🌫️','雾凇'],51:['🌦️','小毛雨'],53:['🌦️','毛毛雨'],55:['🌧️','强毛雨'],61:['🌦️','小雨'],63:['🌧️','中雨'],65:['🌧️','大雨'],80:['🌦️','阵雨'],81:['🌧️','中阵雨'],82:['⛈️','强阵雨'],95:['⛈️','雷暴']};
 async function renderWeatherPanel() {
