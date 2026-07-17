@@ -100,14 +100,16 @@
     // 途经点标记
     const viaMarkers = points.slice(1, -1).map(p => createDotMarker(p, color, '·', 6));
 
-    speciesOverlays[speciesId] = {
-      polyline, startMarker, endMarker, viaMarkers,
-    };
+    speciesOverlays[speciesId] = { polyline, startMarker, endMarker, viaMarkers };
 
-    // 自适应视野
-    const bounds = new AMap.Bounds();
-    points.forEach(p => bounds.extend(p));
-    map.setBounds(bounds, { maxZoom: 10, padding: [60, 60] });
+    // 自适应视野（延迟执行避免交互卡顿）
+    setTimeout(() => {
+      const bounds = new AMap.Bounds();
+      points.forEach(p => bounds.extend(p));
+      map.setBounds(bounds, { maxZoom: 10, padding: [60, 60] });
+      // 确保交互可用
+      map.setStatus({ dragEnable: true, zoomEnable: true });
+    }, 100);
   }
 
   function createDotMarker(pos, color, symbol, size) {
@@ -145,6 +147,7 @@
   }
 
   // ── 监听底部物种栏点击 ─────────────────────────────
+  let currentSpeciesId = null;
   function watchSpeciesClicks() {
     const observer = new MutationObserver(() => {
       const active = document.querySelector('.strip-item--active');
@@ -152,7 +155,8 @@
       const title = active.getAttribute('title');
       if (!title) return;
       const route = ROUTE_DATA.find(r => r.name === title);
-      if (route) {
+      if (route && route.id !== currentSpeciesId) {
+        currentSpeciesId = route.id;
         hideAllSpeciesRoutes();
         drawSpeciesRoute(route.id);
       }
