@@ -1,7 +1,7 @@
 /**
  * 羽迹·深湾 — 观鸟数据整合层
  * 聚合 iNaturalist / GBIF / eBird 三大数据源
- * 以聚合标记（MarkerClusterer）叠加在地图上
+ * 以热力图（AMap.HeatmapLayer）叠加在地图上
  */
 
 (function () {
@@ -17,6 +17,12 @@
       gbif: '#2196F3',
       ebird: '#FF9800',
       local: '#9C27B0',
+    },
+    // 热力图渐变 — 各数据源不同颜色
+    GRADIENTS: {
+      inaturalist: {0.4:'#4CAF50', 0.6:'#2E7D32', 0.8:'#1B5E20', 1.0:'#003300'},
+      gbif:        {0.4:'#2196F3', 0.6:'#1565C0', 0.8:'#0D47A1', 1.0:'#001a4d'},
+      ebird:       {0.4:'#FF9800', 0.6:'#E65100', 0.8:'#BF360C', 1.0:'#7f0000'},
     },
   };
 
@@ -46,7 +52,7 @@
 
   // ── 数据源管理 ────────────────────────────────────
   const sources = {};
-  let markerClusterers = {};
+  let heatmaps = {};
   let currentVisible = {};
 
   function createSource(id, name, color, fetcher) {
@@ -170,86 +176,60 @@
     }
   }
 
-  // ── 标记管理 ────────────────────────────────────
+  // ── 热力图管理 ────────────────────────────────────
   function addMarkers(src) {
-    if (markerClusterers[src.id]) {
+    if (heatmaps[src.id]) {
       showMarkers(src);
       return;
     }
     if (!src.data || src.data.length === 0) return;
 
-    // 创建 AMap 标记
-    const markers = src.data.map(pt => {
-      const marker = new AMap.Marker({
-        position: [pt.lng, pt.lat],
-        size: new AMap.Size(8, 8),
-        offset: new AMap.Pixel(-4, -4),
-        content: `<div style="
-          width:10px;height:10px;border-radius:50%;
-          background:${src.color};
-          border:2px solid rgba(255,255,255,0.5);
-          box-shadow:0 0 6px ${src.color}66;
-        "></div>`,
-        title: pt.label || '',
+    // 准备热力图数据：{lng, lat, count}
+    const heatData = src.data.map(pt => ({
+      lng: pt.lng,
+      lat: pt.lat,
+      count: pt.count || 1,
+    }));
+
+    // 加载 HeatmapLayer 插件
+    AMap.plugin(['AMap.HeatmapLayer'], () => {
+      if (heatmaps[src.id]) return; // 防止重复创建
+
+      const heatmap = new AMap.HeatmapLayer({
+        radius: 25,
+        opacity: [0, 0.6],
+        gradient: CFG.GRADIENTS[src.id] || CFG.GRADIENTS.inaturalist,
+        zooms: [1, 18],
       });
 
-      // 点击显示详情
-      if (pt.label) {
-        marker.on('click', () => {
-          const info = new AMap.InfoWindow({
-            content: `<div style="padding:6px 10px;font-size:12px;color:#333;max-width:240px;line-height:1.6">
-              <strong>${pt.label}</strong>
-              ${pt.date ? '<br>📅 ' + pt.date : ''}
-              ${pt.count ? '<br>📊 数量: ' + pt.count : ''}
-              ${pt.source ? '<br><span style="opacity:0.5;font-size:10px;">来源: ' + pt.source + '</span>' : ''}
-            </div>`,
-            offset: new AMap.Pixel(0, -10),
-          });
-          info.open(map, [pt.lng, pt.lat]);
-        });
-      }
-      return marker;
-    });
-
-    if (markers.length === 0) return;
-
-    // 使用 AMap 插件加载 MarkerClusterer
-    AMap.plugin(['AMap.MarkerClusterer'], () => {
-      markerClusterers[src.id] = new AMap.MarkerClusterer(map, markers, {
-        gridSize: 60,
-        minClusterSize: 2,
-        maxZoom: 14,
-        styles: [{
-          url: 'data:image/svg+xml,' + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40"><circle cx="20" cy="20" r="18" fill="${src.color}" opacity="0.8" stroke="#fff" stroke-width="2"/></svg>`),
-          size: new AMap.Size(40, 40),
-          offset: new AMap.Pixel(-20, -20),
-          textColor: '#fff',
-          textSize: 12,
-        }],
+      heatmap.setDataSet({
+        data: heatData,
+        max: Math.max(...heatData.map(d => d.count), 1),
       });
+
+      heatmap.setMap(map);
+      heatmaps[src.id] = heatmap;
     });
   }
 
   function showMarkers(src) {
-    if (markerClusterers[src.id]) {
-      markerClusterers[src.id].setMap(map);
-    }
+    const h = heatmaps[src.id];
+    if (h) h.setMap(map);
   }
 
   function hideMarkers(src) {
-    if (markerClusterers[src.id]) {
-      markerClusterers[src.id].setMap(null);
-    }
+    const h = heatmaps[src.id];
+    if (h) h.setMap(null);
   }
 
   // ── API 数据获取器 ──────────────────────────────
   const BBOX_CHINA = 'nelat=54&nelng=135&swlat=18&swlng=73';
 
-  // iNaturalist — 鸟纲 (taxon_id=21255)
+  // iNaturalist — 鸟纲 (taxon_id=3)
   async function fetchINaturalist() {
     const perPage = 200;
     // 获取近期的中国鸟类观测
-    const url = `https://api.inaturalist.org/v1/observations?taxon_id=21255&per_page=${perPage}&order=desc&order_by=created_at&${BBOX_CHINA}`;
+    const url = `https://api.inaturalist.org/v1/observations?taxon_id=3&per_page=${perPage}&order=desc&order_by=created_at&${BBOX_CHINA}`;
     const resp = await fetch(url);
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const json = await resp.json();
@@ -268,10 +248,10 @@
     }).filter(Boolean);
   }
 
-  // GBIF — 鸟纲 (taxonKey=21255), 中国 (country=CN)
+  // GBIF — 鸟纲 (taxonKey=212 Aves), 中国 (country=CN)
   async function fetchGBIF() {
     const limit = 300;
-    const url = `https://api.gbif.org/v1/occurrence/search?taxonKey=21255&country=CN&limit=${limit}&hasCoordinate=true`;
+    const url = `https://api.gbif.org/v1/occurrence/search?taxonKey=212&country=CN&limit=${limit}&hasCoordinate=true`;
     const resp = await fetch(url);
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     const json = await resp.json();
