@@ -233,6 +233,10 @@
         currentSpeciesId = route.id;
         hideAllSpeciesRoutes();
         drawSpeciesRoute(route.id);
+      } else if (!route) {
+        // 没有迁徙路线的鸟，清除当前路径
+        currentSpeciesId = null;
+        hideAllSpeciesRoutes();
       }
     });
     log('物种栏点击监听已启动');
