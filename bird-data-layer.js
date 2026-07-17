@@ -519,6 +519,9 @@
     // 启动物种点击监听
     setTimeout(() => { watchSpeciesClicks(); }, 500);
 
+    // 清除默认显示的迁徙路线
+    setTimeout(hideAllSpeciesRoutes, 1000);
+
     // 注册数据源（使用本地缓存优先）
     createSource('inaturalist', 'iNaturalist', CFG.COLORS.inaturalist, () => fetchLocal('inaturalist'));
     createSource('gbif', 'GBIF', CFG.COLORS.gbif, () => fetchLocal('gbif'));
