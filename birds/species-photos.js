@@ -15,11 +15,13 @@
     '互花米草': ['smooth-cordgrass.jpg','https://commons.wikimedia.org/wiki/File:Spartina_alterniflora.jpg']
   };
   const addPhoto = panel => {
-    const name = panel.querySelector('h2')?.textContent?.trim(); const item = photos[name]; if (!item || panel.querySelector('.species-real-photo')) return;
-    const figure = document.createElement('figure'); figure.className='species-real-photo';
-    figure.innerHTML=`<img src="/birds/assets/species/${item[0]}" alt="${name}真实照片" loading="lazy"><figcaption>图片：Wikimedia Commons · <a href="${item[1]}" target="_blank" rel="noreferrer">查看来源与许可</a></figcaption>`;
-    panel.querySelector('.species-header')?.after(figure);
+    const name = panel.querySelector('h2')?.textContent?.trim(); const item = photos[name]; if (!item) return;
+    let figure = panel.querySelector('.species-real-photo');
+    if (!figure) { figure = document.createElement('figure'); figure.className='species-real-photo'; panel.querySelector('.species-header')?.after(figure); }
+    if (figure.dataset.species === name) return;
+    figure.dataset.species = name;
+    figure.innerHTML=`<img src="/birds/assets/species/${item[0]}" alt="${name}真实照片" loading="eager"><figcaption>图片：Wikimedia Commons · <a href="${item[1]}" target="_blank" rel="noreferrer">查看来源与许可</a></figcaption>`;
   };
   const scan = () => document.querySelectorAll('.species-panel').forEach(addPhoto);
-  new MutationObserver(scan).observe(document.body,{childList:true,subtree:true}); scan();
+  new MutationObserver(scan).observe(document.body,{childList:true,subtree:true,characterData:true}); scan();
 })();
