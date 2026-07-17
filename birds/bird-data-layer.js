@@ -56,12 +56,20 @@
     });
   }
 
-  // ── 清除默认标记 ├─────────────────────────────────
+  // ── 清除默认标记 ─────────────────────────────────
+  let defaultOverlaysHidden = false;
   function clearDefaultOverlays() {
+    if (defaultOverlaysHidden) return;
     try {
-      map.clearMap();
-      log('默认标记已清除');
-    } catch(e) { warn('清除标记失败:', e); }
+      // 不使用 clearMap()（会导致交互卡死），改为逐个隐藏
+      const all = map.getAllOverlays ? map.getAllOverlays() : [];
+      all.forEach(o => {
+        if (o.hide) o.hide();
+        else if (o.setMap) o.setMap(null);
+      });
+      defaultOverlaysHidden = true;
+      log(`已隐藏 ${all.length} 个默认覆盖物`);
+    } catch(e) { warn('隐藏标记失败:', e); }
   }
 
   // ── 绘制物种路线 ├─────────────────────────────────
@@ -149,10 +157,11 @@
   // ── 监听底部物种栏点击 ─────────────────────────────
   let currentSpeciesId = null;
   function watchSpeciesClicks() {
-    const observer = new MutationObserver(() => {
-      const active = document.querySelector('.strip-item--active');
-      if (!active) return;
-      const title = active.getAttribute('title');
+    // 改用直接事件委托，避免 MutationObserver 与 Vue 冲突
+    document.addEventListener('click', (e) => {
+      const item = e.target.closest('.strip-item');
+      if (!item) return;
+      const title = item.getAttribute('title');
       if (!title) return;
       const route = ROUTE_DATA.find(r => r.name === title);
       if (route && route.id !== currentSpeciesId) {
@@ -161,21 +170,7 @@
         drawSpeciesRoute(route.id);
       }
     });
-    const strip = document.querySelector('.bottom-strip, [class*="strip"]');
-    if (strip) {
-      observer.observe(strip, { attributes: true, subtree: true, attributeFilter: ['class'] });
-      log('物种栏监听已启动');
-    } else {
-      // 轮询等待
-      const wait = setInterval(() => {
-        const s = document.querySelector('.bottom-strip, [class*="strip"]');
-        if (s) {
-          clearInterval(wait);
-          observer.observe(s, { attributes: true, subtree: true, attributeFilter: ['class'] });
-          log('物种栏监听已启动（延迟）');
-        }
-      }, 500);
-    }
+    log('物种栏点击监听已启动');
   }
 
   // ── 热力图 ──────────────────────────────────────────
