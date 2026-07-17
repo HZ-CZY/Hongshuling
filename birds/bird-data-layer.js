@@ -37,7 +37,7 @@
   function warn(...a) { console.warn('[🌡️ 羽迹]', ...a); }
 
   // ── 等待地图就绪 ──────────────────────────────────
-  let map = null, AMap = null, heatmapLayers = {}, clickMarkers = {}, currentVisible = {};
+  let map = null, AMap = null, currentVisible = {};
   let speciesOverlays = {}; // {speciesId: {polyline, markers}}
 
   function waitForMap(maxWait = 25000) {
@@ -56,23 +56,7 @@
     });
   }
 
-  // ── 清除默认标记 ─────────────────────────────────
-  let defaultOverlaysHidden = false;
-  function clearDefaultOverlays() {
-    if (defaultOverlaysHidden) return;
-    try {
-      // 不使用 clearMap()（会导致交互卡死），改为逐个隐藏
-      const all = map.getAllOverlays ? map.getAllOverlays() : [];
-      all.forEach(o => {
-        if (o.hide) o.hide();
-        else if (o.setMap) o.setMap(null);
-      });
-      defaultOverlaysHidden = true;
-      log(`已隐藏 ${all.length} 个默认覆盖物`);
-    } catch(e) { warn('隐藏标记失败:', e); }
-  }
-
-  // ── 绘制物种路线 ├─────────────────────────────────
+  // ── 绘制物种路线 ──────────────────────────────────
   function drawSpeciesRoute(speciesId) {
     // 清除之前绘制的
     if (speciesOverlays[speciesId]) {
@@ -95,9 +79,6 @@
       lineJoin: 'round',
       lineCap: 'round',
       strokeStyle: 'solid',
-      showDir: true,
-      dirColor: color,
-      dirImg: 'https://webapi.amap.com/theme/v1.3/direction_arrow.png',
     });
     polyline.setMap(map);
 
@@ -109,15 +90,6 @@
     const viaMarkers = points.slice(1, -1).map(p => createDotMarker(p, color, '·', 6));
 
     speciesOverlays[speciesId] = { polyline, startMarker, endMarker, viaMarkers };
-
-    // 自适应视野（延迟执行避免交互卡顿）
-    setTimeout(() => {
-      const bounds = new AMap.Bounds();
-      points.forEach(p => bounds.extend(p));
-      map.setBounds(bounds, { maxZoom: 10, padding: [60, 60] });
-      // 确保交互可用
-      map.setStatus({ dragEnable: true, zoomEnable: true });
-    }, 100);
   }
 
   function createDotMarker(pos, color, symbol, size) {
@@ -194,7 +166,7 @@
       box-shadow:0 4px 24px rgba(0,0,0,0.4);`;
 
     const title = document.createElement('div');
-    title.textContent = '📡 观鸟热力图';
+    title.textContent = '📡 观鸟标记';
     title.style.cssText = 'font-size:10px;opacity:0.6;letter-spacing:1px;padding:2px 4px 6px;border-bottom:1px solid rgba(255,255,255,0.06);';
     panel.appendChild(title);
 
@@ -229,7 +201,9 @@
     document.body.appendChild(panel);
     log('面板已创建');
   }
-
+  // ── 物种标记（Canvas 覆盖层）────────────────────
+  let canvasLayers = {};
+  
   async function toggleSource(id) {
     const src = sources[id]; if (!src) return;
     currentVisible[id] = !currentVisible[id];
@@ -244,71 +218,137 @@
           src.data = data; src.loaded = true;
           src._badge.textContent = data.length + ' 条';
           document.getElementById('heatmap-status').textContent = `${src.name}: ${data.length} 条`;
-          createHeatmap(src);
+          createCanvasLayer(src);
         } catch (err) {
           src._badge.textContent = '❌';
           document.getElementById('heatmap-status').textContent = `${src.name} 失败: ${err.message}`;
           warn(err);
         }
-      } else { showHeatmap(src); }
+      } else { showCanvasLayer(src); }
     } else {
       src._row.style.cssText = src._baseStyle;
-      hideHeatmap(src);
+      hideCanvasLayer(src);
     }
   }
 
-  function createHeatmap(src) {
-    if (heatmapLayers[src.id]) { showHeatmap(src); return; }
+  function createCanvasLayer(src) {
+    if (canvasLayers[src.id]) { showCanvasLayer(src); return; }
     if (!src.data || !src.data.length) return;
 
-    const heatData = src.data.map(p => ({ lng: p.lng, lat: p.lat, count: p.count || 1 }));
-    const maxC = Math.max(...heatData.map(d => d.count), 1);
+    log(`${src.name}: 创建 Canvas 覆盖层 (${src.data.length} 点)...`);
 
-    // 使用 AMap.plugin 标准方式加载热力图插件
-    log(`${src.name}: 加载 HeatmapLayer 插件...`);
-    try {
-      AMap.plugin(['AMap.HeatmapLayer'], () => {
-        if (typeof AMap.HeatmapLayer !== 'function') {
-          warn(`${src.name}: HeatmapLayer 插件加载后仍不可用`);
-          document.getElementById('heatmap-status').textContent = `${src.name} ❌ 热力图插件不可用`;
-          return;
-        }
-        log(`${src.name}: HeatmapLayer 插件就绪`);
-        try {
-          const h = new AMap.HeatmapLayer(map, {
-            radius: 25,
-            opacity: [0, 0.55],
-            gradient: CFG.GRADIENTS[src.id] || CFG.GRADIENTS.inaturalist,
-            zooms: [3, 18],
-          });
-          h.setDataSet({ data: heatData, max: maxC });
-          heatmapLayers[src.id] = h;
+    // 创建 Canvas 元素
+    const canvas = document.createElement('canvas');
+    canvas.style.cssText = 'position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:50;';
+    canvas.width = 1;
+    canvas.height = 1;
 
-          // 自动缩放
-          const bounds = new AMap.Bounds();
-          heatData.forEach(p => bounds.extend([p.lng, p.lat]));
-          map.setBounds(bounds, { maxZoom: 10, padding: [40, 40] });
+    // 获取地图容器
+    const container = map.getContainer();
+    container.style.position = 'relative';
+    container.appendChild(canvas);
 
-          document.getElementById('heatmap-status').textContent = `${src.name}: ✅ ${heatData.length} 点`;
-          log(`${src.name}: 热力图创建成功`);
-        } catch(e) {
-          warn(`${src.name}: 热力图创建失败`, e);
-          document.getElementById('heatmap-status').textContent = `${src.name} ❌ 渲染失败`;
-        }
-      });
-    } catch(e) {
-      warn(`${src.name}: AMap.plugin 调用失败`, e);
-      document.getElementById('heatmap-status').textContent = `${src.name} ❌ 插件加载失败`;
+    // 保存数据
+    canvasLayers[src.id] = { canvas, data: src.data, color: src.color, name: src.name };
+
+    // 绘制函数
+    function draw() {
+      if (!canvas || !canvas.parentNode) return;
+      const rect = container.getBoundingClientRect();
+      const w = rect.width;
+      const h = rect.height;
+      
+      // 只在尺寸变化时重置 canvas 大小
+      if (canvas.width !== w || canvas.height !== h) {
+        canvas.width = w;
+        canvas.height = h;
+      }
+
+      const ctx = canvas.getContext('2d');
+      ctx.clearRect(0, 0, w, h);
+
+      const pts = src.data;
+      // 限制绘制数量避免卡顿
+      const max = Math.min(pts.length, 500);
+      
+      for (let i = 0; i < max; i++) {
+        const p = pts[i];
+        // 将经纬度转为屏幕坐标
+        const pixel = map.lngLatToContainer(new AMap.LngLat(p.lng, p.lat));
+        if (!pixel) continue;
+        const x = pixel.getX();
+        const y = pixel.getY();
+        // 只绘制在视口内的点
+        if (x < -10 || x > w + 10 || y < -10 || y > h + 10) continue;
+
+        ctx.beginPath();
+        ctx.arc(x, y, 5, 0, Math.PI * 2);
+        ctx.fillStyle = src.color;
+        ctx.globalAlpha = 0.7;
+        ctx.fill();
+        ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+        ctx.lineWidth = 1.5;
+        ctx.stroke();
+        ctx.globalAlpha = 1;
+      }
+    }
+
+    // 首次绘制
+    setTimeout(draw, 50);
+
+    // 地图每次移动/缩放重新绘制
+    const moveHandler = () => draw();
+    map.on('moveend', moveHandler);
+    map.on('zoomend', moveHandler);
+    map.on('resize', moveHandler);
+
+    canvasLayers[src.id]._handlers = { moveend: moveHandler, zoomend: moveHandler, resize: moveHandler };
+
+    // 自动缩放
+    const bounds = new AMap.Bounds();
+    src.data.forEach(p => bounds.extend([p.lng, p.lat]));
+    map.setBounds(bounds, { maxZoom: 10, padding: [40, 40] });
+
+    document.getElementById('heatmap-status').textContent = `${src.name}: ✅ ${src.data.length} 点`;
+    log(`${src.name}: Canvas 覆盖层创建成功`);
+  }
+
+  function showCanvasLayer(src) {
+    const layer = canvasLayers[src.id];
+    if (layer && layer.canvas) {
+      layer.canvas.style.display = 'block';
+      // 重新绘制（因为可能移动了地图）
+      const container = map.getContainer();
+      const rect = container.getBoundingClientRect();
+      layer.canvas.width = rect.width;
+      layer.canvas.height = rect.height;
+      const ctx = layer.canvas.getContext('2d');
+      ctx.clearRect(0, 0, layer.canvas.width, layer.canvas.height);
+      const max = Math.min(layer.data.length, 500);
+      for (let i = 0; i < max; i++) {
+        const p = layer.data[i];
+        const pixel = map.lngLatToContainer(new AMap.LngLat(p.lng, p.lat));
+        if (!pixel) continue;
+        const x = pixel.getX(), y = pixel.getY();
+        if (x < -10 || x > layer.canvas.width + 10 || y < -10 || y > layer.canvas.height + 10) continue;
+        const ctx2 = ctx;
+        ctx2.beginPath();
+        ctx2.arc(x, y, 5, 0, Math.PI * 2);
+        ctx2.fillStyle = layer.color;
+        ctx2.globalAlpha = 0.7;
+        ctx2.fill();
+        ctx2.strokeStyle = 'rgba(255,255,255,0.5)';
+        ctx2.lineWidth = 1.5;
+        ctx2.stroke();
+        ctx2.globalAlpha = 1;
+      }
     }
   }
-
-  function showHeatmap(src) {
-    const h = heatmapLayers[src.id];
-    if (h) { h.setMap(map); log(`${src.name} 热力图已显示`); }
-  }
-  function hideHeatmap(src) {
-    const h = heatmapLayers[src.id];
-    if (h) { h.setMap(null); }
+  function hideCanvasLayer(src) {
+    const layer = canvasLayers[src.id];
+    if (layer && layer.canvas) {
+      layer.canvas.style.display = 'none';
+    }
   }
 
   // ── API 获取器 ────────────────────────────────────
@@ -344,24 +384,76 @@
     return (j||[]).map(o => ({ lat: o.lat, lng: o.lng, label: o.comName+(o.locName?' @ '+o.locName:''), date: o.obsDt||'', source:'eBird', count: o.howMany||1 }));
   }
 
+  // ── 在线观鸟 ──────────────────────────────────────
+  function addLiveBirdButton() {
+    const btn = document.createElement('div');
+    btn.id = 'live-bird-btn';
+    btn.textContent = '📺 在线观鸟';
+    btn.title = '在新标签页打开 CCTV 深圳湾候鸟直播';
+    btn.style.cssText = `
+      position:fixed;bottom:80px;right:155px;z-index:9998;
+      padding:6px 12px;border-radius:20px;
+      background:rgba(8,18,35,0.8);backdrop-filter:blur(8px);
+      border:1px solid rgba(255,255,255,0.1);
+      font:11px -apple-system,BlinkMacSystemFont,'PingFang SC',sans-serif;
+      color:#e0f0ff;cursor:pointer;
+      box-shadow:0 2px 12px rgba(0,0,0,0.3);
+      transition:all 0.2s;
+    `;
+    btn.onmouseenter = () => { btn.style.background = 'rgba(0,200,200,0.2)'; btn.style.borderColor = 'rgba(0,200,200,0.3)'; };
+    btn.onmouseleave = () => { btn.style.background = 'rgba(8,18,35,0.8)'; btn.style.borderColor = 'rgba(255,255,255,0.1)'; };
+    btn.onclick = () => window.open('https://livechina.cctv.com/live_zb/LIVE5048.html?pageid=5048&tag=MicroLiveType', '_blank');
+    document.body.appendChild(btn);
+    log('在线观鸟按钮已创建');
+  }
+
+  // ── 本地数据加载器（服务端定时拉取缓存）────────────
+  async function fetchLocal(name) {
+    const resp = await fetch(`/birds/data/${name}.json`);
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    return await resp.json();
+  }
+
   // ── 初始化 ──────────────────────────────────────
   async function init() {
     log('初始化...');
     try { await waitForMap(); } catch(e) { warn('地图未就绪'); return; }
 
-    // 清除默认路线/标记
-    setTimeout(() => {
-      clearDefaultOverlays();
-      // 监听物种点击
-      watchSpeciesClicks();
-    }, 1500);
+    // 启动物种点击监听
+    setTimeout(() => { watchSpeciesClicks(); }, 500);
 
-    // 注册热力图数据源
-    createSource('inaturalist', 'iNaturalist', CFG.COLORS.inaturalist, fetchINaturalist);
-    createSource('gbif', 'GBIF', CFG.COLORS.gbif, fetchGBIF);
-    createSource('ebird', 'eBird', CFG.COLORS.ebird, fetchEbird);
+    // 注册数据源（使用本地缓存优先）
+    createSource('inaturalist', 'iNaturalist', CFG.COLORS.inaturalist, () => fetchLocal('inaturalist'));
+    createSource('gbif', 'GBIF', CFG.COLORS.gbif, () => fetchLocal('gbif'));
+    createSource('ebird', 'eBird', CFG.COLORS.ebird, () => fetchLocal('ebird'));
     createPanel();
 
+    // 自动加载并显示所有数据源
+    const autoLoad = async () => {
+      for (const id of ['inaturalist', 'gbif', 'ebird']) {
+        const src = sources[id];
+        if (!src) continue;
+        try {
+          const data = await src.fetcher();
+          if (data && data.length) {
+            src.data = data; src.loaded = true;
+            src._badge.textContent = data.length + ' 条';
+            src._row.style.cssText = src._baseStyle +
+              `background:${src.color}18!important;border-color:${src.color}44!important;opacity:1!important;`;
+            currentVisible[id] = true;
+            createCanvasLayer(src);
+          }
+        } catch(e) {
+          warn(`${src.name} 自动加载失败:`, e);
+          src._badge.textContent = '⚠️';
+        }
+      }
+    };
+    // 延迟自动加载，等面板渲染完成
+    setTimeout(autoLoad, 300);
+
+    // 在线观鸟按钮
+    addLiveBirdButton();
     log('✅ 初始化完成');
   }
 
