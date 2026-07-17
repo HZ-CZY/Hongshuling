@@ -180,56 +180,6 @@
   }
 
   // ── 热力图管理 ────────────────────────────────────
-  function ensurePlugin(callback) {
-    // 先检查是否已加载
-    if (typeof AMap.HeatmapLayer === 'function') {
-      log('HeatmapLayer 已加载');
-      callback();
-      return;
-    }
-    log('正在加载 HeatmapLayer 插件...');
-    // 方法1: AMap.plugin
-    try {
-      AMap.plugin(['AMap.HeatmapLayer'], () => {
-        if (typeof AMap.HeatmapLayer === 'function') {
-          log('HeatmapLayer 插件加载成功 (AMap.plugin)');
-          callback();
-        } else {
-          warn('AMap.plugin 回调后 HeatmapLayer 仍不可用');
-          // 方法2: 直接加载脚本
-          loadPluginDirect(callback);
-        }
-      });
-    } catch (e) {
-      warn('AMap.plugin 调用失败:', e);
-      loadPluginDirect(callback);
-    }
-  }
-
-  function loadPluginDirect(callback) {
-    log('尝试直接加载 HeatmapLayer 脚本...');
-    const key = 'c4457c1375944d591ac15a9392e9a1ab';
-    const script = document.createElement('script');
-    script.src = `https://webapi.amap.com/maps?v=2.0&key=${key}&plugin=AMap.HeatmapLayer&_t=${Date.now()}`;
-    script.onload = () => {
-      log('HeatmapLayer 脚本直接加载成功');
-      // 等待 AMap 注册插件
-      const waitForIt = () => {
-        if (typeof AMap.HeatmapLayer === 'function') {
-          callback();
-        } else {
-          setTimeout(waitForIt, 200);
-        }
-      };
-      setTimeout(waitForIt, 500);
-    };
-    script.onerror = () => {
-      warn('HeatmapLayer 脚本直接加载失败');
-      document.getElementById('heatmap-status').textContent = '❌ 热力图插件加载失败, 请刷新重试';
-    };
-    document.head.appendChild(script);
-  }
-
   function addHeatmap(src) {
     if (heatmaps[src.id]) {
       showHeatmap(src);
@@ -241,7 +191,28 @@
       return;
     }
 
-    ensurePlugin(() => {
+    // 等待 AMap.HeatmapLayer 可用（插件已通过主AMap脚本加载）
+    const waitForLayer = (cb) => {
+      if (typeof AMap.HeatmapLayer === 'function') {
+        cb();
+        return;
+      }
+      log('等待 HeatmapLayer 就绪...');
+      let tries = 0;
+      const check = () => {
+        tries++;
+        if (typeof AMap.HeatmapLayer === 'function') { cb(); return; }
+        if (tries > 50) { // ~10s timeout
+          warn('HeatmapLayer 加载超时');
+          document.getElementById('heatmap-status').textContent = `${src.name} ❌ 插件加载超时`;
+          return;
+        }
+        setTimeout(check, 200);
+      };
+      check();
+    };
+
+    waitForLayer(() => {
       try {
         // 准备热力图数据
         const heatData = src.data.map(pt => ({
@@ -252,7 +223,13 @@
         const maxCount = Math.max(...heatData.map(d => d.count), 1);
         log(`${src.name} 热力图数据: ${heatData.length} 点, max=${maxCount}`);
 
-        // 创建热力图（传入 map 作为第一参数，更可靠）
+        // 自动缩放地图到数据范围
+        const bounds = new AMap.Bounds();
+        heatData.forEach(p => bounds.extend([p.lng, p.lat]));
+        map.setBounds(bounds, { maxZoom: 10, padding: [40, 40] });
+        log(`自动适配视野: ${bounds.toString()}`);
+
+        // 创建热力图
         const heatmap = new AMap.HeatmapLayer(map, {
           radius: 20,
           opacity: [0, 0.6],
@@ -264,8 +241,6 @@
           data: heatData,
           max: maxCount,
         });
-
-        // heatmap.setMap(map); // 已通过构造函数传入 map
 
         heatmaps[src.id] = heatmap;
         log(`${src.name} 热力图创建成功`);
