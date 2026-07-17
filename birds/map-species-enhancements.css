@@ -1,0 +1,55 @@
+/* Keep map controls above the enlarged species dock and make bird pins legible. */
+#bird-data-panel {
+  right: 16px !important;
+  bottom: 110px !important;
+  color: #274c36 !important;
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-color: rgba(22, 101, 52, 0.14) !important;
+  box-shadow: 0 8px 28px rgba(18, 53, 39, 0.13) !important;
+}
+
+.legend {
+  right: 160px !important;
+  bottom: 110px !important;
+}
+
+.custom-species-marker {
+  display: flex !important;
+  visibility: visible !important;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+.custom-species-marker .marker-emoji {
+  width: 46px !important;
+  height: 46px !important;
+  font-size: 25px !important;
+  background: rgba(255, 255, 255, 0.96) !important;
+  border: 2px solid #166534 !important;
+  box-shadow: 0 5px 18px rgba(18, 53, 39, 0.28) !important;
+}
+
+.custom-species-marker .marker-dot {
+  width: 7px !important;
+  height: 7px !important;
+  background: #15803d !important;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.88), 0 2px 8px rgba(18, 53, 39, 0.3) !important;
+}
+
+@media (max-width: 700px) {
+  #bird-data-panel {
+    right: 10px !important;
+    bottom: 102px !important;
+  }
+
+  .legend {
+    right: 150px !important;
+    bottom: 102px !important;
+  }
+}
+
+@media (max-width: 520px) {
+  .legend {
+    display: none !important;
+  }
+}

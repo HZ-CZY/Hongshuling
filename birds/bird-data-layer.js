@@ -356,7 +356,8 @@
 
     // 清除默认路线/标记
     setTimeout(() => {
-      clearDefaultOverlays();
+      // Do not call map.clearMap() here: it removes every clickable species
+      // marker that the main application has just rendered.
       // 监听物种点击
       watchSpeciesClicks();
     }, 1500);
