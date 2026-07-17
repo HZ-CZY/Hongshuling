@@ -15,3 +15,9 @@
 - 苍鹭：`Ardea cinerea - Pak Thale.jpg`
 - 红颈滨鹬：`Calidris ruficollis - Marion Bay.jpg`
 - 互花米草：`Spartina alterniflora.jpg`
+- 小白鹭：`Little egret (Egretta garzetta) Photograph by Shantanu Kuveskar.jpg`
+- 黑翅长脚鹬：`Black-winged stilt (Himantopus himantopus) Pearaing.jpg`
+- 反嘴鹬：`Pied Avocet Recurvirostra avosetta.jpg`
+- 普通鸬鹚：`Phalacrocorax carbo carbo, Killingworth Lake.jpg`
+- 青脚鹬：`Common-Greenshank.jpg`
+- 红脚鹬：`Common redshank (Tringa totanus) breeding Marken.jpg`
