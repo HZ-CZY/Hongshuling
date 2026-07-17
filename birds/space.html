@@ -1,0 +1,796 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>深空 · 羽迹 — 候鸟迁徙三维地球</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap');
+
+body {
+  background: #05080f;
+  overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  color: #e0f0ff;
+  user-select: none;
+}
+
+/* ─── 3D Canvas ─── */
+#globe-container {
+  position: fixed; inset: 0; z-index: 1;
+}
+
+/* ─── 顶部标题 ─── */
+.header {
+  position: fixed; top: 28px; left: 32px; z-index: 100;
+  display: flex; align-items: center; gap: 14px;
+}
+.header-icon {
+  width: 42px; height: 42px; border-radius: 12px;
+  background: linear-gradient(135deg, #00d4d4, #0066ff);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 22px; box-shadow: 0 0 20px rgba(0,200,200,0.3);
+}
+.header h1 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 18px; font-weight: 700; letter-spacing: 3px;
+  background: linear-gradient(90deg, #00d4d4, #48dbfb, #0066ff);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+.header .subtitle {
+  font-size: 10px; opacity: 0.4; letter-spacing: 4px;
+  margin-top: 2px; -webkit-text-fill-color: rgba(224,240,255,0.4);
+}
+
+/* ─── 右侧导航 ─── */
+.right-nav {
+  position: fixed; right: 24px; top: 50%; transform: translateY(-50%); z-index: 100;
+  display: flex; flex-direction: column; gap: 6px;
+}
+.nav-btn {
+  width: 48px; height: 48px; border-radius: 14px;
+  background: rgba(10, 20, 40, 0.55); backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.06);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 18px; cursor: pointer; transition: all 0.3s;
+  color: rgba(224,240,255,0.4);
+  position: relative;
+}
+.nav-btn:hover { background: rgba(10, 20, 40, 0.75); border-color: rgba(0,200,200,0.3); color: rgba(224,240,255,0.8); }
+.nav-btn.active {
+  background: rgba(0, 200, 200, 0.12); border-color: rgba(0, 200, 200, 0.35);
+  color: #00d4d4; box-shadow: 0 0 16px rgba(0,200,200,0.1);
+}
+.nav-btn .tooltip {
+  position: absolute; right: 58px; top: 50%; transform: translateY(-50%);
+  white-space: nowrap; font-size: 11px; padding: 4px 10px;
+  background: rgba(10,20,35,0.85); backdrop-filter: blur(8px);
+  border-radius: 6px; border: 1px solid rgba(255,255,255,0.06);
+  opacity: 0; pointer-events: none; transition: all 0.2s;
+  color: rgba(224,240,255,0.7);
+}
+.nav-btn:hover .tooltip { opacity: 1; }
+
+/* ─── 信息卡片 ─── */
+.info-card {
+  position: fixed; z-index: 100;
+  padding: 18px 22px; border-radius: 16px; min-width: 200px;
+  background: rgba(8, 18, 35, 0.75); backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.6), 0 0 0 1px rgba(0, 200, 200, 0.05);
+  opacity: 0; transform: translateY(10px);
+  transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+  pointer-events: none;
+}
+.info-card.visible { opacity: 1; transform: translateY(0); pointer-events: auto; }
+
+/* 路线信息卡片 (左下角) */
+#route-info { bottom: 100px; left: 32px; }
+
+/* 物种详情卡片 (右下角) */
+#species-card { bottom: 100px; right: 90px; max-width: 280px; }
+
+.card-title {
+  font-size: 13px; font-weight: 600; margin-bottom: 8px;
+  display: flex; align-items: center; gap: 8px;
+}
+.card-title .dot {
+  width: 8px; height: 8px; border-radius: 50%; display: inline-block;
+}
+.card-row { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px; }
+.card-label { opacity: 0.45; }
+.card-value { opacity: 0.85; font-weight: 500; }
+.card-divider { height: 1px; background: rgba(255,255,255,0.06); margin: 8px 0; }
+.card-desc { font-size: 11px; opacity: 0.55; line-height: 1.5; }
+
+/* ─── 底部状态栏 ─── */
+.bottom-bar {
+  position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%); z-index: 100;
+  padding: 8px 20px; border-radius: 20px;
+  background: rgba(10, 20, 35, 0.6); backdrop-filter: blur(12px);
+  border: 1px solid rgba(255,255,255,0.04);
+  display: flex; align-items: center; gap: 20px;
+  font-size: 11px; opacity: 0.5; letter-spacing: 0.5px;
+}
+.bottom-bar .sep { opacity: 0.2; }
+
+/* ─── 加载画面 ─── */
+#loading {
+  position: fixed; inset: 0; z-index: 9999;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  background: #05080f;
+  transition: opacity 1s ease;
+}
+#loading.hidden { opacity: 0; pointer-events: none; }
+.loading-ring {
+  width: 60px; height: 60px; border-radius: 50%;
+  border: 2px solid rgba(0,200,200,0.1);
+  border-top-color: #00d4d4;
+  animation: spin 1s linear infinite;
+  box-shadow: 0 0 30px rgba(0,200,200,0.1);
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+#loading p { margin-top: 20px; font-size: 13px; opacity: 0.4; letter-spacing: 3px; }
+
+/* ─── 响应式 ─── */
+@media (max-width: 768px) {
+  .header { top: 16px; left: 16px; }
+  .header h1 { font-size: 14px; }
+  .right-nav { right: 12px; gap: 4px; }
+  .nav-btn { width: 40px; height: 40px; font-size: 16px; border-radius: 10px; }
+  #route-info { left: 16px; bottom: 80px; min-width: 160px; }
+  #species-card { right: 66px; bottom: 80px; max-width: 200px; }
+  .bottom-bar { font-size: 9px; gap: 12px; padding: 6px 14px; }
+}
+</style>
+</head>
+<body>
+
+<!-- 加载画面 -->
+<div id="loading">
+  <div class="loading-ring"></div>
+  <p>深空传输中···</p>
+</div>
+
+<!-- 3D 容器 -->
+<div id="globe-container"></div>
+
+<!-- 顶栏 -->
+<div class="header">
+  <div class="header-icon">🕊️</div>
+  <div>
+    <h1>深空 · 羽迹</h1>
+    <div class="subtitle">MIGRATION · EARTH OBSERVATION</div>
+  </div>
+</div>
+
+<!-- 右侧导航 -->
+<div class="right-nav">
+  <div class="nav-btn active" data-panel="globe" title="3D 地球">🌍<span class="tooltip">3D 地球</span></div>
+  <div class="nav-btn" data-panel="routes" title="迁徙轨道">🛸<span class="tooltip">迁徙轨道</span></div>
+  <div class="nav-btn" data-panel="data" title="观测数据">📡<span class="tooltip">观测数据</span></div>
+  <div class="nav-btn" data-panel="weather" title="深空气象">🌤️<span class="tooltip">深空气象</span></div>
+  <div class="nav-btn" onclick="location.href='/birds/'" title="返回平面地图">🗺️<span class="tooltip">平面地图</span></div>
+</div>
+
+<!-- 路线信息卡片 -->
+<div id="route-info" class="info-card">
+  <div class="card-title"><span class="dot" id="route-dot" style="background:#FF6B6B"></span><span id="route-name">黑脸琵鹭</span></div>
+  <div class="card-row"><span class="card-label">🛫 出发</span><span class="card-value" id="route-origin">朝鲜半岛</span></div>
+  <div class="card-row"><span class="card-label">🛬 到达</span><span class="card-value" id="route-dest">深圳湾</span></div>
+  <div class="card-row"><span class="card-label">📏 距离</span><span class="card-value" id="route-dist">约 2,000 km</span></div>
+  <div class="card-divider"></div>
+  <div class="card-desc" id="route-desc">繁殖于朝鲜半岛，沿中国东部沿海迁徙至深圳湾越冬</div>
+</div>
+
+<!-- 物种详情卡片 -->
+<div id="species-card" class="info-card">
+  <div class="card-title">🕊️ <span id="species-name">选择路线</span></div>
+  <div class="card-row"><span class="card-label">观测</span><span class="card-value" id="species-obs">--</span></div>
+  <div class="card-row"><span class="card-label">状态</span><span class="card-value" id="species-status">--</span></div>
+  <div class="card-divider"></div>
+  <div class="card-desc" id="species-desc">悬停于路线上方查看详情</div>
+</div>
+
+<!-- 底部状态 -->
+<div class="bottom-bar">
+  <span>✦ 深空探索模式</span>
+  <span class="sep">|</span>
+  <span id="fps-display">0 FPS</span>
+  <span class="sep">|</span>
+  <span id="routes-display">6 条迁徙航线</span>
+  <span class="sep">|</span>
+  <span>🔄 拖拽旋转 · 滚轮缩放</span>
+</div>
+
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { CSS2DRenderer, CSS2DObject } from 'three/addons/renderers/CSS2DRenderer.js';
+
+// ══════════════════════════════════════════════════
+//  数据
+// ══════════════════════════════════════════════════
+
+const ROUTE_DATA = [
+  {
+    id: 'black-faced-spoonbill', name: '黑脸琵鹭', emoji: '🕊️', color: '#FF6B6B',
+    waypoints: [
+      {lng:126.5,lat:38},{lng:125.2,lat:36.5},{lng:124,lat:34},{lng:122.5,lat:31.5},
+      {lng:121,lat:29},{lng:119.8,lat:26.5},{lng:117.5,lat:24},{lng:113.95,lat:22.52}
+    ],
+    origin: '朝鲜半岛', dest: '深圳湾', distance: '约 2,000 km',
+    desc: '繁殖于朝鲜半岛，沿中国东部沿海迁徙至深圳湾越冬'
+  },
+  {
+    id: 'black-headed-gull', name: '红嘴鸥', emoji: '🕊️', color: '#4ECDC4',
+    waypoints: [
+      {lng:110,lat:48},{lng:112,lat:44},{lng:115,lat:40},{lng:117,lat:37},
+      {lng:119,lat:33},{lng:120,lat:29},{lng:117.5,lat:25},{lng:113.95,lat:22.52}
+    ],
+    origin: '西伯利亚', dest: '深圳湾', distance: '约 3,500 km',
+    desc: '繁殖于西伯利亚南部和蒙古高原湖泊，秋季大规模南迁至华南沿海'
+  },
+  {
+    id: 'great-egret', name: '大白鹭', emoji: '🦢', color: '#FFFFFF',
+    waypoints: [
+      {lng:118,lat:30},{lng:117.5,lat:28},{lng:116.5,lat:25.5},{lng:115,lat:24},{lng:113.95,lat:22.52}
+    ],
+    origin: '长江中下游', dest: '深圳湾', distance: '约 900 km',
+    desc: '部分种群在长江流域繁殖，冬季南下至华南沿海越冬'
+  },
+  {
+    id: 'grey-heron', name: '苍鹭', emoji: '🦩', color: '#95A5A6',
+    waypoints: [
+      {lng:120,lat:34},{lng:119.5,lat:31.5},{lng:119,lat:28.5},{lng:118,lat:26},{lng:116,lat:24},{lng:113.95,lat:22.52}
+    ],
+    origin: '江苏沿海', dest: '深圳湾', distance: '约 1,400 km',
+    desc: '繁殖于华东沿海湿地，冬季部分个体南迁至华南'
+  },
+  {
+    id: 'eurasian-curlew', name: '白腰杓鹬', emoji: '🦆', color: '#F39C12',
+    waypoints: [
+      {lng:115,lat:50},{lng:117,lat:45},{lng:118,lat:40},{lng:119.5,lat:35},
+      {lng:120,lat:30},{lng:118,lat:26},{lng:115.5,lat:23.5},{lng:113.95,lat:22.52}
+    ],
+    origin: '蒙古高原', dest: '深圳湾', distance: '约 3,200 km',
+    desc: '繁殖于蒙古和西伯利亚草原湿地，迁徙途经深圳湾'
+  },
+  {
+    id: 'red-necked-stint', name: '红颈滨鹬', emoji: '🐧', color: '#3498DB',
+    waypoints: [
+      {lng:120,lat:65},{lng:122,lat:55},{lng:123,lat:45},{lng:122,lat:38},
+      {lng:121,lat:32},{lng:119,lat:26},{lng:113.95,lat:22.52}
+    ],
+    origin: '西伯利亚东北部', dest: '澳大利亚', distance: '往返超 20,000 km',
+    desc: '往返于西伯利亚和澳大利亚之间的极长距离迁徙者'
+  }
+];
+
+const EARTH_RADIUS = 5;
+const ARC_HEIGHT = 0.8; // 弧线高度
+
+// ══════════════════════════════════════════════════
+//  坐标工具
+// ══════════════════════════════════════════════════
+
+function latLngToVec3(lat, lng, radius = EARTH_RADIUS) {
+  const phi = (90 - lat) * Math.PI / 180;
+  const theta = (lng + 180) * Math.PI / 180;
+  return new THREE.Vector3(
+    -radius * Math.sin(phi) * Math.cos(theta),
+    radius * Math.cos(phi),
+    radius * Math.sin(phi) * Math.sin(theta)
+  );
+}
+
+// ══════════════════════════════════════════════════
+//  Three.js 场景初始化
+// ══════════════════════════════════════════════════
+
+const container = document.getElementById('globe-container');
+const width = window.innerWidth;
+const height = window.innerHeight;
+
+const scene = new THREE.Scene();
+
+const camera = new THREE.PerspectiveCamera(40, width / height, 0.1, 1000);
+camera.position.set(8, 4, 12);
+camera.lookAt(0, 0, 0);
+
+const renderer = new THREE.WebGLRenderer({
+  antialias: true,
+  alpha: true
+});
+renderer.setSize(width, height);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+renderer.toneMappingExposure = 1.2;
+container.appendChild(renderer.domElement);
+
+const labelRenderer = new CSS2DRenderer();
+labelRenderer.setSize(width, height);
+labelRenderer.domElement.style.position = 'absolute';
+labelRenderer.domElement.style.top = '0';
+labelRenderer.domElement.style.pointerEvents = 'none';
+container.appendChild(labelRenderer.domElement);
+
+// ─── 轨道控制 ───
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.dampingFactor = 0.05;
+controls.rotateSpeed = 0.6;
+controls.autoRotate = true;
+controls.autoRotateSpeed = 0.3;
+controls.minDistance = 7;
+controls.maxDistance = 20;
+controls.target.set(0, 0, 0);
+
+// ─── 星空 ───
+function createStars() {
+  const count = 8000;
+  const positions = new Float32Array(count * 3);
+  const sizes = new Float32Array(count);
+  for (let i = 0; i < count; i++) {
+    const r = 80 + Math.random() * 120;
+    const theta = Math.random() * Math.PI * 2;
+    const phi = Math.acos(2 * Math.random() - 1);
+    positions[i*3] = r * Math.sin(phi) * Math.cos(theta);
+    positions[i*3+1] = r * Math.cos(phi);
+    positions[i*3+2] = r * Math.sin(phi) * Math.sin(theta);
+    sizes[i] = 0.5 + Math.random() * 1.5;
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+  geo.setAttribute('size', new THREE.BufferAttribute(sizes, 1));
+  const mat = new THREE.PointsMaterial({
+    color: 0xffffff, size: 0.08, transparent: true, opacity: 0.8,
+    sizeAttenuation: true
+  });
+  return new THREE.Points(geo, mat);
+}
+scene.add(createStars());
+
+// ─── 光照 ───
+const ambientLight = new THREE.AmbientLight(0x222244, 0.5);
+scene.add(ambientLight);
+
+const sunLight = new THREE.DirectionalLight(0xffeedd, 1.8);
+sunLight.position.set(10, 5, 10);
+scene.add(sunLight);
+
+const rimLight = new THREE.DirectionalLight(0x4488ff, 0.5);
+rimLight.position.set(-5, -3, -8);
+scene.add(rimLight);
+
+// ─── 地球 ───
+const textureLoader = new THREE.TextureLoader();
+const baseUrl = location.href.includes('birds') ? '/birds/assets/textures/' : '/assets/textures/';
+
+const earthGroup = new THREE.Group();
+scene.add(earthGroup);
+
+const earthGeo = new THREE.SphereGeometry(EARTH_RADIUS, 96, 96);
+// 先用颜色材质兜底，纹理加载后替换
+const earthMat = new THREE.MeshPhongMaterial({
+  color: 0x1a2a4a,
+  emissive: 0x0a1a3a,
+  emissiveIntensity: 0.1,
+  shininess: 15
+});
+const earth = new THREE.Mesh(earthGeo, earthMat);
+earthGroup.add(earth);
+
+// 异步加载纹理
+textureLoader.load(baseUrl + 'earth-day.jpg', (tex) => {
+  earthMat.map = tex;
+  earthMat.color.set(0xffffff);
+  earthMat.needsUpdate = true;
+});
+textureLoader.load(baseUrl + 'earth-night.jpg', (tex) => {
+  earthMat.emissiveMap = tex;
+  earthMat.emissive = new THREE.Color(0xffcc44);
+  earthMat.emissiveIntensity = 0.6;
+  earthMat.needsUpdate = true;
+});
+
+// ─── 大气层辉光 ───
+const atmosMat = new THREE.ShaderMaterial({
+  vertexShader: `
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    void main() {
+      vNormal = normalize(normalMatrix * normal);
+      vPosition = (modelViewMatrix * vec4(position, 1.0)).xyz;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    void main() {
+      vec3 viewDir = normalize(-vPosition);
+      float intensity = pow(0.72 - dot(vNormal, viewDir), 3.5);
+      vec3 color = mix(vec3(0.0, 0.6, 0.8), vec3(0.0, 0.3, 1.0), intensity);
+      gl_FragColor = vec4(color, intensity * 0.7);
+    }
+  `,
+  side: THREE.BackSide,
+  blending: THREE.AdditiveBlending,
+  transparent: true,
+  depthWrite: false
+});
+const atmos = new THREE.Mesh(
+  new THREE.SphereGeometry(EARTH_RADIUS * 1.025, 64, 64),
+  atmosMat
+);
+earthGroup.add(atmos);
+
+// 外层光晕
+const glowMat = new THREE.ShaderMaterial({
+  vertexShader: `
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    void main() {
+      vNormal = normalize(normalMatrix * normal);
+      vPosition = (modelViewMatrix * vec4(position, 1.0)).xyz;
+      gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+    }
+  `,
+  fragmentShader: `
+    varying vec3 vNormal;
+    varying vec3 vPosition;
+    void main() {
+      vec3 viewDir = normalize(-vPosition);
+      float intensity = pow(0.65 - dot(vNormal, viewDir), 4.0);
+      gl_FragColor = vec4(0.3, 0.6, 1.0, intensity * 0.3);
+    }
+  `,
+  side: THREE.BackSide,
+  blending: THREE.AdditiveBlending,
+  transparent: true,
+  depthWrite: false
+});
+const glow = new THREE.Mesh(
+  new THREE.SphereGeometry(EARTH_RADIUS * 1.06, 48, 48),
+  glowMat
+);
+earthGroup.add(glow);
+
+// ══════════════════════════════════════════════════
+//  迁徙路线
+// ══════════════════════════════════════════════════
+
+const routes = [];
+const movingDots = [];
+
+ROUTE_DATA.forEach((data, idx) => {
+  const pts = data.waypoints.map(w => {
+    // 地面点
+    const p = latLngToVec3(w.lat, w.lng, EARTH_RADIUS);
+    // 弧线顶点（向外抬高）
+    const midIdx = Math.floor(data.waypoints.length / 2);
+    const isMid = data.waypoints.indexOf(w) > 0 && data.waypoints.indexOf(w) < data.waypoints.length - 1;
+    return p;
+  });
+
+  // CatmullRom 曲线
+  const curve = new THREE.CatmullRomCurve3(pts);
+
+  // 采样曲线上的点并抬高形成弧线
+  const arcPts = [];
+  const samples = 60;
+  for (let i = 0; i <= samples; i++) {
+    const t = i / samples;
+    const p = curve.getPoint(t);
+    // 抬高高度（中间最高，两端归零）
+    const height = Math.sin(t * Math.PI) * ARC_HEIGHT;
+    const dir = p.clone().normalize();
+    arcPts.push(p.clone().add(dir.multiplyScalar(height)));
+  }
+  const arcCurve = new THREE.CatmullRomCurve3(arcPts);
+
+  // Tube geometry
+  const tubeGeo = new THREE.TubeGeometry(arcCurve, 64, 0.02, 8, false);
+  const color = new THREE.Color(data.color);
+  const tubeMat = new THREE.MeshBasicMaterial({
+    color: color,
+    transparent: true,
+    opacity: 0.5,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false
+  });
+  const tube = new THREE.Mesh(tubeGeo, tubeMat);
+  earthGroup.add(tube);
+
+  // 发光外管
+  const glowMat2 = new THREE.MeshBasicMaterial({
+    color: color,
+    transparent: true,
+    opacity: 0.15,
+    blending: THREE.AdditiveBlending,
+    depthWrite: false,
+    side: THREE.BackSide
+  });
+  const glowTube = new THREE.Mesh(
+    new THREE.TubeGeometry(arcCurve, 48, 0.06, 6, false),
+    glowMat2
+  );
+  earthGroup.add(glowTube);
+
+  // 虚线轨迹（沿路径的小点）
+  const dashCount = 40;
+  const dashPts = [];
+  for (let i = 0; i < dashCount; i++) {
+    const t = i / dashCount;
+    dashPts.push(arcCurve.getPoint(t));
+  }
+  const dashGeo = new THREE.BufferGeometry().setFromPoints(dashPts);
+  const dashMat = new THREE.PointsMaterial({
+    color: color, size: 0.04, transparent: true, opacity: 0.6,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+    sizeAttenuation: true
+  });
+  const dashPoints = new THREE.Points(dashGeo, dashMat);
+  earthGroup.add(dashPoints);
+
+  // 移动光点（流光动画）
+  const dotMat = new THREE.MeshBasicMaterial({
+    color: 0xffffff, transparent: true, opacity: 0.9
+  });
+  const dot = new THREE.Mesh(new THREE.SphereGeometry(0.05, 8, 8), dotMat);
+  earthGroup.add(dot);
+
+  // 光点辉光
+  const dotGlowMat = new THREE.MeshBasicMaterial({
+    color: color, transparent: true, opacity: 0.3,
+    blending: THREE.AdditiveBlending, depthWrite: false
+  });
+  const dotGlow = new THREE.Mesh(new THREE.SphereGeometry(0.10, 8, 8), dotGlowMat);
+  earthGroup.add(dotGlow);
+
+  // 起点标记
+  const startPos = arcCurve.getPoint(0);
+  const startMarker = createMarker(startPos, data.color, '○', 0.15);
+  earthGroup.add(startMarker);
+
+  // 终点标记
+  const endPos = arcCurve.getPoint(1);
+  const endMarker = createMarker(endPos, data.color, '●', 0.2);
+  earthGroup.add(endMarker);
+
+  // CSS 标签
+  const labelDiv = document.createElement('div');
+  labelDiv.textContent = data.name;
+  labelDiv.style.cssText = `
+    color: ${data.color}; font-size: 11px; font-weight: 600;
+    text-shadow: 0 0 10px ${data.color}44, 0 0 20px rgba(0,0,0,0.8);
+    background: rgba(8,18,35,0.6); backdrop-filter: blur(4px);
+    padding: 2px 8px; border-radius: 4px;
+    border: 1px solid ${data.color}33;
+    white-space: nowrap; pointer-events: none;
+    font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', sans-serif;
+  `;
+  const label = new CSS2DObject(labelDiv);
+  label.position.copy(endPos);
+  label.position.y += 0.3;
+  earthGroup.add(label);
+
+  routes.push({
+    data, curve: arcCurve, tube, glowTube, dashPoints, dot, dotGlow,
+    startMarker, endMarker, label, points: arcPts
+  });
+
+  movingDots.push({ dot, dotGlow, curve, speed: 0.15 + Math.random() * 0.1, offset: Math.random() });
+});
+
+// ─── 创建标记辅助 ───
+function createMarker(pos, color, symbol, size) {
+  const canvas = document.createElement('canvas');
+  canvas.width = 64;
+  canvas.height = 64;
+  const ctx = canvas.getContext('2d');
+  const c = new THREE.Color(color);
+  
+  // 外发光圆
+  const grad = ctx.createRadialGradient(32, 32, 0, 32, 32, 32);
+  grad.addColorStop(0, `rgba(${c.r*255|0},${c.g*255|0},${c.b*255|0},0.6)`);
+  grad.addColorStop(0.5, `rgba(${c.r*255|0},${c.g*255|0},${c.b*255|0},0.2)`);
+  grad.addColorStop(1, `rgba(${c.r*255|0},${c.g*255|0},${c.b*255|0},0)`);
+  ctx.fillStyle = grad;
+  ctx.beginPath();
+  ctx.arc(32, 32, 30, 0, Math.PI * 2);
+  ctx.fill();
+
+  // 实心圆
+  ctx.fillStyle = `rgba(8,18,35,0.8)`;
+  ctx.beginPath();
+  ctx.arc(32, 32, 12, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = `rgba(${c.r*255|0},${c.g*255|0},${c.b*255|0},0.8)`;
+  ctx.lineWidth = 2;
+  ctx.beginPath();
+  ctx.arc(32, 32, 12, 0, Math.PI * 2);
+  ctx.stroke();
+
+  // 中心符号
+  ctx.fillStyle = `rgba(${c.r*255|0},${c.g*255|0},${c.b*255|0},0.9)`;
+  ctx.font = 'bold 18px Arial';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(symbol, 32, 32);
+
+  const tex = new THREE.CanvasTexture(canvas);
+  const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending });
+  const sprite = new THREE.Sprite(mat);
+  sprite.scale.set(size * 2, size * 2, 1);
+  sprite.position.copy(pos);
+  return sprite;
+}
+
+// ══════════════════════════════════════════════════
+//  交互 — 光线投射
+// ══════════════════════════════════════════════════
+
+const raycaster = new THREE.Raycaster();
+const pointer = new THREE.Vector2();
+let hoveredRoute = null;
+
+renderer.domElement.addEventListener('pointermove', (e) => {
+  pointer.x = (e.clientX / width) * 2 - 1;
+  pointer.y = -(e.clientY / height) * 2 + 1;
+
+  raycaster.setFromCamera(pointer, camera);
+  const intersects = raycaster.intersectObjects(scene.children, true);
+
+  let found = null;
+  for (const hit of intersects) {
+    // Check if this is a route tube mesh
+    for (const r of routes) {
+      if (hit.object === r.tube || hit.object === r.glowTube || hit.object === r.dot || hit.object === r.dotGlow) {
+        found = r;
+        break;
+      }
+    }
+    if (found) break;
+  }
+
+  if (found !== hoveredRoute) {
+    hoveredRoute = found;
+    updateCard(found);
+  }
+});
+
+function updateCard(route) {
+  const card = document.getElementById('route-info');
+  const species = document.getElementById('species-card');
+  if (!route) {
+    card.classList.remove('visible');
+    species.classList.remove('visible');
+    return;
+  }
+  const d = route.data;
+  document.getElementById('route-dot').style.background = d.color;
+  document.getElementById('route-name').textContent = d.emoji + ' ' + d.name;
+  document.getElementById('route-origin').textContent = d.origin;
+  document.getElementById('route-dest').textContent = d.dest;
+  document.getElementById('route-dist').textContent = d.distance;
+  document.getElementById('route-desc').textContent = d.desc;
+  card.classList.add('visible');
+
+  document.getElementById('species-name').textContent = d.emoji + ' ' + d.name;
+  document.getElementById('species-obs').textContent = ROUTE_DATA.length + ' 条航线';
+  document.getElementById('species-status').textContent = d.color;
+  document.getElementById('species-desc').textContent = '候鸟迁徙航线 · 三维可视化';
+  species.classList.add('visible');
+}
+
+// ══════════════════════════════════════════════════
+//  导航交互
+// ══════════════════════════════════════════════════
+
+document.querySelectorAll('.nav-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    const panel = btn.dataset.panel;
+    if (panel === 'routes') {
+      controls.autoRotate = false;
+      // Zoom to show all routes
+      // Simple: just disable autorotate so user can examine
+    } else {
+      controls.autoRotate = true;
+    }
+    // Toggle route visibility
+    routes.forEach(r => {
+      r.tube.visible = panel !== 'globe';
+      r.glowTube.visible = panel !== 'globe';
+      r.dashPoints.visible = panel !== 'globe';
+      r.dot.visible = panel !== 'globe';
+      r.dotGlow.visible = panel !== 'globe';
+    });
+  });
+});
+
+// ══════════════════════════════════════════════════
+//  渲染循环
+// ══════════════════════════════════════════════════
+
+let frameCount = 0;
+let lastFpsTime = 0;
+
+function animate(time) {
+  requestAnimationFrame(animate);
+
+  // FPS
+  frameCount++;
+  if (time - lastFpsTime > 1000) {
+    document.getElementById('fps-display').textContent = frameCount + ' FPS';
+    frameCount = 0;
+    lastFpsTime = time;
+  }
+
+  // 光点动画
+  movingDots.forEach((item) => {
+    item.offset = (item.offset + 0.003 * item.speed) % 1;
+    const pos = item.curve.getPoint(item.offset);
+    item.dot.position.copy(pos);
+    item.dotGlow.position.copy(pos);
+
+    // 光点亮暗呼吸
+    const breathe = 0.6 + 0.4 * Math.sin(time * 0.003 + item.offset * 10);
+    item.dot.material.opacity = breathe;
+    item.dotGlow.material.opacity = breathe * 0.3;
+  });
+
+  controls.update();
+  renderer.render(scene, camera);
+  labelRenderer.render(scene, camera);
+}
+
+// ══════════════════════════════════════════════════
+//  窗口自适应
+// ══════════════════════════════════════════════════
+
+window.addEventListener('resize', () => {
+  const w = window.innerWidth;
+  const h = window.innerHeight;
+  camera.aspect = w / h;
+  camera.updateProjectionMatrix();
+  renderer.setSize(w, h);
+  labelRenderer.setSize(w, h);
+});
+
+// ══════════════════════════════════════════════════
+//  启动
+// ══════════════════════════════════════════════════
+
+// 隐藏加载画面
+setTimeout(() => {
+  document.getElementById('loading').classList.add('hidden');
+}, 800);
+
+// 默认显示路线
+routes.forEach(r => {
+  r.tube.visible = true;
+  r.glowTube.visible = true;
+  r.dashPoints.visible = true;
+  r.dot.visible = true;
+  r.dotGlow.visible = true;
+});
+
+animate(0);
+</script>
+</body>
+</html>
