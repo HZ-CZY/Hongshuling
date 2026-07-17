@@ -1,0 +1,360 @@
+/* ═══════════════════════════════════════════════════
+   羽迹·深湾 — 新 UI 主题 (基于 Figma Weathery 设计)
+   ═══════════════════════════════════════════════════ */
+:root {
+  --bg-deep: #0c0f1e;
+  --bg-glass: rgba(20, 26, 50, 0.55);
+  --bg-glass-strong: rgba(22, 28, 56, 0.7);
+  --bg-card: rgba(22, 28, 56, 0.6);
+  --bg-sidebar: rgba(20, 26, 48, 0.6);
+  --accent: #00e5ff;
+  --accent-glow: rgba(0, 229, 255, 0.2);
+  --accent-dim: rgba(0, 229, 255, 0.12);
+  --text-primary: #ffffff;
+  --text-secondary: rgba(255, 255, 255, 0.6);
+  --text-tertiary: rgba(255, 255, 255, 0.4);
+  --text-dim: rgba(255, 255, 255, 0.25);
+  --border-glass: 1px solid rgba(255, 255, 255, 0.10);
+  --border-active: 1px solid rgba(0, 229, 255, 0.35);
+  --shadow-glass: 0 8px 40px rgba(0, 0, 0, 0.45);
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 16px;
+  --radius-xl: 22px;
+  --radius-2xl: 28px;
+  --font: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Inter', 'PingFang SC', sans-serif;
+}
+
+/* ── 全局背景 ── */
+body, .home, #app-root, #app {
+  background: var(--bg-deep) !important;
+  font-family: var(--font) !important;
+  color: var(--text-primary) !important;
+}
+
+/* ── 环境辉光 ── */
+#app-root::before {
+  content: '';
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  width: 600px; height: 600px;
+  top: -150px; left: -80px;
+  background: radial-gradient(circle, rgba(0, 100, 255, 0.12) 0%, transparent 70%);
+}
+#app-root::after {
+  content: '';
+  position: fixed;
+  pointer-events: none;
+  z-index: 0;
+  width: 500px; height: 500px;
+  bottom: -100px; right: 20%;
+  background: radial-gradient(circle, rgba(0, 229, 255, 0.08) 0%, transparent 70%);
+}
+
+/* ── 左侧导航栏 ── */
+.left-nav {
+  background: var(--bg-sidebar) !important;
+  backdrop-filter: blur(28px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+  border: var(--border-glass) !important;
+  box-shadow: var(--shadow-glass), inset 0 1px 0 rgba(255,255,255,0.12) !important;
+  border-radius: var(--radius-2xl) !important;
+  left: 16px !important;
+  top: 16px !important;
+  bottom: 16px !important;
+  width: 58px !important;
+  padding: 16px 0 !important;
+  z-index: 50 !important;
+}
+
+/* 导航栏顶部高光线 */
+.left-nav::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 8px; right: 8px;
+  height: 1px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+}
+
+.nav-brand {
+  width: 36px !important; height: 36px !important;
+  border-radius: var(--radius-md) !important;
+  background: linear-gradient(135deg, #00e5ff 0%, #0055ff 100%) !important;
+  box-shadow: 0 4px 16px rgba(0, 180, 255, 0.4) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-bottom: 12px !important;
+  font-size: 16px !important;
+}
+
+/* 导航项 */
+.nav-item {
+  width: 40px !important; height: 40px !important;
+  border-radius: var(--radius-lg) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  transition: all 0.2s !important;
+  color: rgba(255, 255, 255, 0.35) !important;
+  position: relative !important;
+  font-size: 10px !important;
+  gap: 0 !important;
+  margin: 2px auto !important;
+}
+.nav-item .nav-icon { font-size: 16px !important; }
+.nav-item .nav-label { font-size: 7px !important; opacity: 0.6 !important; }
+
+.nav-item:hover {
+  color: rgba(255, 255, 255, 0.55) !important;
+  background: rgba(255, 255, 255, 0.04) !important;
+}
+
+.nav-item--active, .nav-item--active:hover {
+  background: rgba(0, 229, 255, 0.15) !important;
+  border: 1px solid rgba(0, 229, 255, 0.35) !important;
+  box-shadow: 0 0 14px rgba(0, 229, 255, 0.2), inset 0 1px 0 rgba(255,255,255,0.15) !important;
+  color: var(--accent) !important;
+}
+
+.nav-item--active::after {
+  content: '';
+  position: absolute;
+  top: 4px; right: 4px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px var(--accent);
+}
+
+/* 导航分隔线 */
+.left-nav > * + * { margin-top: 0 !important; }
+.left-nav::after {
+  content: '';
+  display: block;
+  width: 24px; height: 1px;
+  background: rgba(255,255,255,0.08);
+  margin: 8px auto;
+}
+
+/* 3D 按钮单独样式 */
+.nav-item--3d {
+  margin-top: auto !important;
+}
+
+/* ── 顶部栏 ── */
+.map-container {
+  top: 84px !important;
+  left: 90px !important;
+  right: 16px !important;
+  bottom: 16px !important;
+  border-radius: var(--radius-xl) !important;
+  overflow: hidden !important;
+  border: 1px solid rgba(255,255,255,0.07) !important;
+  box-shadow: 0 4px 60px rgba(0,0,0,0.5) !important;
+  position: absolute !important;
+  width: auto !important;
+  height: auto !important;
+}
+
+/* ── 底部物种栏 ── */
+.bottom-strip {
+  position: fixed !important;
+  bottom: 16px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 100 !important;
+  background: var(--bg-glass) !important;
+  backdrop-filter: blur(28px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+  border: var(--border-glass) !important;
+  box-shadow: var(--shadow-glass), inset 0 1px 0 rgba(255,255,255,0.12) !important;
+  border-radius: var(--radius-lg) !important;
+  padding: 6px 12px !important;
+  display: flex !important;
+  gap: 2px !important;
+}
+
+.strip-item {
+  padding: 6px 12px !important;
+  border-radius: var(--radius-sm) !important;
+  transition: all 0.2s !important;
+  cursor: pointer !important;
+  color: var(--text-tertiary) !important;
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  border: 1px solid transparent !important;
+}
+.strip-item:hover {
+  color: var(--text-secondary) !important;
+  background: rgba(255, 255, 255, 0.05) !important;
+}
+.strip-item--active {
+  background: var(--accent-dim) !important;
+  border: 1px solid rgba(0, 229, 255, 0.3) !important;
+  color: var(--accent) !important;
+}
+
+/* ── 侧边面板（物种详情等） ── */
+.side-panel {
+  position: absolute !important;
+  left: 82px !important;
+  top: 20px !important;
+  z-index: 150 !important;
+  width: 340px !important;
+  background: var(--bg-glass-strong) !important;
+  backdrop-filter: blur(28px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+  border: var(--border-glass) !important;
+  box-shadow: var(--shadow-glass), inset 0 1px 0 rgba(255,255,255,0.12) !important;
+  border-radius: var(--radius-lg) !important;
+  padding: 16px !important;
+  color: var(--text-primary) !important;
+}
+
+/* ── 图例 ── */
+.legend {
+  position: fixed !important;
+  left: 90px !important;
+  bottom: 80px !important;
+  z-index: 80 !important;
+  background: var(--bg-glass) !important;
+  backdrop-filter: blur(28px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+  border: var(--border-glass) !important;
+  box-shadow: var(--shadow-glass), inset 0 1px 0 rgba(255,255,255,0.12) !important;
+  border-radius: var(--radius-md) !important;
+  padding: 10px 14px !important;
+  min-width: 160px !important;
+}
+.legend__title {
+  color: var(--text-secondary) !important;
+  font-size: 11px !important;
+  font-weight: 600 !important;
+  margin-bottom: 6px !important;
+}
+.legend__item {
+  font-size: 11px !important;
+  color: var(--text-secondary) !important;
+  padding: 2px 0 !important;
+}
+.legend__dot {
+  width: 8px !important; height: 8px !important;
+  border-radius: 50% !important;
+  border: 1.5px solid rgba(255,255,255,0.3) !important;
+}
+.legend__divider {
+  height: 1px !important;
+  background: rgba(255,255,255,0.06) !important;
+  margin: 6px 0 !important;
+}
+.legend__name { color: var(--text-secondary) !important; }
+.legend__obs-text { color: var(--text-tertiary) !important; font-size: 10px !important; }
+.legend__hint {
+  color: var(--text-dim) !important;
+  font-size: 9px !important;
+  margin-top: 4px !important;
+}
+
+/* ── 气象卡 ── */
+.weather-card {
+  position: fixed !important;
+  top: 84px !important;
+  right: 16px !important;
+  z-index: 80 !important;
+  width: 260px !important;
+  background: var(--bg-card) !important;
+  backdrop-filter: blur(20px) !important;
+  -webkit-backdrop-filter: blur(20px) !important;
+  border: var(--border-glass) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.06) !important;
+  border-radius: var(--radius-lg) !important;
+  padding: 14px !important;
+}
+.weather-card__header {
+  border-bottom: 1px solid rgba(255,255,255,0.06) !important;
+  padding-bottom: 8px !important;
+  margin-bottom: 10px !important;
+}
+.weather-card__header .weather-icon { font-size: 14px !important; opacity: 0.7 !important; }
+.weather-card__header .weather-title {
+  color: var(--text-secondary) !important;
+  font-size: 12px !important;
+  font-weight: 600 !important;
+}
+.weather-emoji { font-size: 32px !important; }
+.weather-temp { font-size: 24px !important; font-weight: 700 !important; color: white !important; }
+.weather-desc { color: var(--text-secondary) !important; font-size: 12px !important; }
+.detail-label { color: var(--text-tertiary) !important; font-size: 10px !important; }
+.detail-value { color: var(--text-secondary) !important; font-size: 11px !important; }
+.update-time { color: var(--text-dim) !important; font-size: 9px !important; }
+
+/* ── 观鸟数据面板 ── */
+#bird-data-panel {
+  right: 16px !important;
+  bottom: 80px !important;
+  z-index: 100 !important;
+  background: var(--bg-glass) !important;
+  backdrop-filter: blur(28px) saturate(180%) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(180%) !important;
+  border: var(--border-glass) !important;
+  box-shadow: var(--shadow-glass), inset 0 1px 0 rgba(255,255,255,0.12) !important;
+  border-radius: var(--radius-md) !important;
+}
+
+/* ── 在线观鸟按钮 ── */
+#live-bird-btn {
+  background: var(--bg-glass) !important;
+  backdrop-filter: blur(12px) !important;
+  border: var(--border-glass) !important;
+  border-radius: 20px !important;
+  right: 155px !important;
+  padding: 6px 14px !important;
+  font-size: 11px !important;
+}
+#live-bird-btn:hover {
+  background: var(--accent-dim) !important;
+  border-color: rgba(0, 229, 255, 0.3) !important;
+}
+
+/* ── AMap 控件样式覆盖 ── */
+.amap-container, .amap-layers, .amap-maps {
+  border-radius: inherit !important;
+}
+.amap-ctrl {
+  background: var(--bg-glass-strong) !important;
+  backdrop-filter: blur(12px) !important;
+  border: var(--border-glass) !important;
+  border-radius: var(--radius-sm) !important;
+}
+.amap-zoom-touch, .amap-zoom {
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+/* ── CSS 动画 ── */
+@keyframes panelSlideIn {
+  from { opacity: 0; transform: translateX(-20px); }
+  to   { opacity: 1; transform: translateX(0); }
+}
+@keyframes cardSlideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes pulseGlow {
+  0%, 100% { box-shadow: 0 0 10px rgba(0, 229, 255, 0.2); }
+  50%      { box-shadow: 0 0 20px rgba(0, 229, 255, 0.4); }
+}
+
+/* ── 修正底部元素间距 ── */
+.home, #app, #app-root {
+  position: relative !important;
+  min-height: 100vh !important;
+}
