@@ -60,7 +60,8 @@ html[data-theme="light"] .amap-labels,
 html[data-theme="light"] .amap-info { filter: none; }
 
 html[data-theme="light"] .left-nav {
-  background: linear-gradient(180deg, rgba(246, 251, 241, .97), rgba(226, 239, 218, .95)) !important;
+  background: linear-gradient(180deg, rgba(246, 251, 241, .91), rgba(226, 239, 218, .87)) !important;
+  backdrop-filter: blur(16px) saturate(1.08) !important;
   border: 1px solid rgba(54, 107, 68, .18) !important;
   box-shadow: 10px 0 30px rgba(43, 79, 50, .13), inset -1px 0 rgba(255, 255, 255, .7) !important;
 }
@@ -87,9 +88,10 @@ html[data-theme="light"] .photo-panel,
 html[data-theme="light"] .shop-panel,
 html[data-theme="light"] .ai-assistant,
 html[data-theme="light"] .share-panel {
-  background: linear-gradient(150deg, rgba(251, 253, 247, .97), rgba(236, 245, 229, .95)) !important;
-  border: 1px solid var(--nature-line) !important;
-  box-shadow: 0 18px 44px rgba(45, 83, 51, .13), inset 0 1px 0 rgba(255, 255, 255, .88) !important;
+  background: linear-gradient(150deg, rgba(249, 252, 245, .91), rgba(232, 243, 224, .87)) !important;
+  backdrop-filter: blur(17px) saturate(1.08) !important;
+  border: 1px solid rgba(67, 124, 78, .22) !important;
+  box-shadow: 0 17px 40px rgba(45, 83, 51, .12), inset 0 1px 0 rgba(255, 255, 255, .72) !important;
   color: var(--nature-ink) !important;
 }
 html[data-theme="light"] .weather-card { border-top: 3px solid rgba(63, 150, 91, .55) !important; }
@@ -123,6 +125,11 @@ html[data-theme="light"] .photo-subtitle { color: #577461 !important; }
 html[data-theme="light"] .species-scientific,
 html[data-theme="light"] .detail-label,
 html[data-theme="light"] .update-time { color: #748c79 !important; }
+html[data-theme="light"] .weather-temp {
+  color: #285b3e !important;
+  text-shadow: 0 1px 0 rgba(255, 255, 255, .65) !important;
+}
+html[data-theme="light"] .warn-text { color: #966018 !important; }
 
 html[data-theme="light"] .species-tag {
   background: rgba(101, 156, 88, .09) !important;
@@ -136,11 +143,17 @@ html[data-theme="light"] .species-tag--habitat {
 }
 
 html[data-theme="light"] .bottom-strip {
-  background: linear-gradient(180deg, rgba(248, 252, 244, .97), rgba(228, 240, 220, .96)) !important;
-  border-color: rgba(52, 111, 67, .17) !important;
-  box-shadow: 0 -10px 32px rgba(44, 80, 49, .13), inset 0 1px rgba(255, 255, 255, .9) !important;
+  background: linear-gradient(180deg, rgba(248, 252, 244, .90), rgba(228, 240, 220, .86)) !important;
+  backdrop-filter: blur(17px) saturate(1.08) !important;
+  border-color: rgba(52, 111, 67, .22) !important;
+  box-shadow: 0 -9px 28px rgba(44, 80, 49, .11), inset 0 1px rgba(255, 255, 255, .72) !important;
 }
 html[data-theme="light"] .strip-item { color: #55715c !important; border-radius: 12px !important; }
+html[data-theme="light"] .strip-name {
+  color: #315d42 !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+}
 html[data-theme="light"] .strip-item:hover {
   background: rgba(104, 162, 91, .10) !important;
   color: #256d45 !important;
@@ -150,10 +163,21 @@ html[data-theme="light"] .strip-item--active {
   color: #17633d !important;
   box-shadow: inset 0 -3px #439a60 !important;
 }
+html[data-theme="light"] .strip-item--active .strip-name { color: #174c31 !important; }
 
-html[data-theme="light"] .legend { border-left: 3px solid rgba(93, 151, 75, .45) !important; }
+html[data-theme="light"] .legend {
+  border-left: 3px solid rgba(93, 151, 75, .45) !important;
+  background: linear-gradient(150deg, rgba(249, 252, 245, .90), rgba(232, 243, 224, .86)) !important;
+  backdrop-filter: blur(16px) saturate(1.08) !important;
+}
+html[data-theme="light"] .legend__dot {
+  border: 1px solid rgba(37, 78, 49, .34) !important;
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, .5) !important;
+}
+html[data-theme="light"] .legend__divider { background: rgba(50, 101, 64, .13) !important; }
 html[data-theme="light"] #bird-data-panel {
-  background: linear-gradient(155deg, rgba(249, 252, 245, .97), rgba(229, 241, 221, .96)) !important;
+  background: linear-gradient(155deg, rgba(249, 252, 245, .90), rgba(229, 241, 221, .86)) !important;
+  backdrop-filter: blur(16px) saturate(1.08) !important;
   color: #315b3f !important;
   border: 1px solid rgba(53, 113, 68, .17) !important;
   box-shadow: 0 14px 36px rgba(42, 79, 48, .14) !important;
