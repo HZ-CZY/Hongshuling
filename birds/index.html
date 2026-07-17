@@ -12,6 +12,39 @@
     <script defer src="/birds/bird-data-layer.js"></script>
     <script defer src="/birds/theme-toggle.js"></script>
     <link rel="stylesheet" href="/birds/theme-toggle.css">
+    <style>
+      /* Keep opened panels clear of the fixed left feature bar. */
+      .side-panel {
+        left: 128px !important;
+        top: 50% !important;
+        transform: translateY(-50%) !important;
+        animation: side-panel-centered-in 0.3s cubic-bezier(.16, 1, .3, 1) !important;
+      }
+
+      .side-panel > * {
+        position: relative !important;
+        inset: auto !important;
+      }
+
+      @keyframes side-panel-centered-in {
+        from {
+          transform: translate(-16px, -50%);
+          opacity: 0;
+        }
+        to {
+          transform: translate(0, -50%);
+          opacity: 1;
+        }
+      }
+
+      @media (max-width: 560px) {
+        .side-panel {
+          left: 96px !important;
+          width: calc(100vw - 108px) !important;
+          max-height: calc(100vh - 24px) !important;
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="app"></div>
