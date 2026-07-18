@@ -1,21 +1,18 @@
 (() => {
-  const commonsImage = fileName =>
-    `https://commons.wikimedia.org/wiki/Special:Redirect/file/${encodeURIComponent(fileName)}`;
-
   const photos = {
-    '黑脸琵鹭': ['Black_faced_spoonbill_at_Niigata.JPG', 'https://commons.wikimedia.org/wiki/File:Black_faced_spoonbill_at_Niigata.JPG'],
-    '大白鹭': ['Great_Egret_(Ardea_alba)_in_Breeding_Plumage,_Cape_May_County,_New_Jersey,_USA_(cropped).png', 'https://commons.wikimedia.org/wiki/File:Great_Egret_(Ardea_alba)_in_Breeding_Plumage,_Cape_May_County,_New_Jersey,_USA_(cropped).png'],
-    '红嘴鸥': ['Chroicocephalus_ridibundus_2012a.jpg', 'https://commons.wikimedia.org/wiki/File:Chroicocephalus_ridibundus_2012a.jpg'],
-    '普通翠鸟': ['Alcedo_atthis_-England-8_(cropped).jpg', 'https://commons.wikimedia.org/wiki/File:Alcedo_atthis_-England-8_(cropped).jpg'],
-    '白腰杓鹬': ['Far_Eastern_Curlew_cairns_RWD2.jpg', 'https://commons.wikimedia.org/wiki/File:Far_Eastern_Curlew_cairns_RWD2.jpg'],
-    '秋茄': ['Kandelia_obovata_Reserve_Park_in_Shenzhen.jpg', 'https://commons.wikimedia.org/wiki/File:Kandelia_obovata_Reserve_Park_in_Shenzhen.jpg'],
-    '白骨壤': ['Avicennia_marina_(grey_mangrove).JPG', 'https://commons.wikimedia.org/wiki/File:Avicennia_marina_(grey_mangrove).JPG'],
-    '鲎': ['Tachypleus_tridentatus.jpg', 'https://commons.wikimedia.org/wiki/File:Tachypleus_tridentatus.jpg'],
-    '弹涂鱼': ['Periophthalmus_modestus.jpg', 'https://commons.wikimedia.org/wiki/File:Periophthalmus_modestus.jpg'],
-    '招潮蟹': ['Tubuca_arcuata.jpg', 'https://commons.wikimedia.org/wiki/File:Tubuca_arcuata.jpg'],
-    '苍鹭': ['Ardea_cinerea_-_Pak_Thale.jpg', 'https://commons.wikimedia.org/wiki/File:Ardea_cinerea_-_Pak_Thale.jpg'],
-    '红颈滨鹬': ['Calidris_ruficollis_-_Marion_Bay.jpg', 'https://commons.wikimedia.org/wiki/File:Calidris_ruficollis_-_Marion_Bay.jpg'],
-    '互花米草': ['Spartina_alterniflora.jpg', 'https://commons.wikimedia.org/wiki/File:Spartina_alterniflora.jpg']
+    '黑脸琵鹭': ['black-faced-spoonbill.webp', 'https://commons.wikimedia.org/wiki/File:Black_faced_spoonbill_at_Niigata.JPG', 'Wikimedia Commons'],
+    '大白鹭': ['great-egret.webp', 'https://commons.wikimedia.org/wiki/File:Great_Egret_(Ardea_alba)_in_Breeding_Plumage,_Cape_May_County,_New_Jersey,_USA_(cropped).png', 'Wikimedia Commons'],
+    '红嘴鸥': ['black-headed-gull.webp', 'https://commons.wikimedia.org/wiki/File:Chroicocephalus_ridibundus_2012a.jpg', 'Wikimedia Commons'],
+    '普通翠鸟': ['common-kingfisher.webp', 'https://commons.wikimedia.org/wiki/File:Alcedo_atthis_-England-8_(cropped).jpg', 'Wikimedia Commons'],
+    '白腰杓鹬': ['far-eastern-curlew.webp', 'https://commons.wikimedia.org/wiki/File:Far_Eastern_Curlew_cairns_RWD2.jpg', 'Wikimedia Commons'],
+    '秋茄': ['kandelia.webp', 'https://commons.wikimedia.org/wiki/File:Kandelia_obovata_Reserve_Park_in_Shenzhen.jpg', 'Wikimedia Commons'],
+    '白骨壤': ['avicennia.webp', 'https://commons.wikimedia.org/wiki/File:Avicennia_marina_(grey_mangrove).JPG', 'Wikimedia Commons'],
+    '鲎': ['horseshoe-crab.webp', 'https://commons.wikimedia.org/wiki/File:Tachypleus_tridentatus.jpg', 'Wikimedia Commons'],
+    '弹涂鱼': ['mudskipper.webp', 'https://commons.wikimedia.org/wiki/File:Periophthalmus_modestus.jpg', 'Wikimedia Commons'],
+    '招潮蟹': ['fiddler-crab.webp', 'https://commons.wikimedia.org/wiki/File:Tubuca_arcuata.jpg', 'Wikimedia Commons'],
+    '苍鹭': ['grey-heron.webp', 'https://commons.wikimedia.org/wiki/File:Ardea_cinerea_-_Pak_Thale.jpg', 'Wikimedia Commons'],
+    '红颈滨鹬': ['red-necked-stint.webp', 'https://commons.wikimedia.org/wiki/File:Calidris_ruficollis_-_Marion_Bay.jpg', 'Wikimedia Commons'],
+    '互花米草': ['smooth-cordgrass.webp', 'https://baike.baidu.com/item/互花米草', '百度百科']
   };
 
   const addPhoto = panel => {
@@ -33,8 +30,8 @@
 
     figure.dataset.species = name;
     figure.innerHTML = `
-      <img src="${commonsImage(item[0])}" alt="${name}真实照片" loading="eager" referrerpolicy="no-referrer">
-      <figcaption>图片：Wikimedia Commons · <a href="${item[1]}" target="_blank" rel="noreferrer">查看来源与许可</a></figcaption>`;
+      <img src="/birds/assets/species/${item[0]}" alt="${name}真实照片" loading="eager">
+      <figcaption>图片来源：${item[2]} · <a href="${item[1]}" target="_blank" rel="noreferrer">查看来源与许可</a></figcaption>`;
   };
 
   const scan = () => document.querySelectorAll('.species-panel').forEach(addPhoto);
