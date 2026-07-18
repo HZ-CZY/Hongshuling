@@ -14,26 +14,287 @@
 }
 
 .custom-species-marker {
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+  --shine-x: 30%;
+  --shine-y: 22%;
+  position: relative !important;
   display: flex !important;
   visibility: visible !important;
   opacity: 1 !important;
   filter: none !important;
+  perspective: 260px;
+  transform-style: preserve-3d;
+  animation: species-marker-flight 4.6s ease-in-out infinite !important;
+  animation-delay: calc(var(--marker-index, 0) * -0.21s) !important;
+  will-change: transform;
+}
+
+.custom-species-marker::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -6px;
+  width: 34px;
+  height: 10px;
+  border-radius: 50%;
+  background: radial-gradient(ellipse, rgba(18, 53, 39, 0.3), rgba(18, 53, 39, 0) 72%);
+  transform: translateX(-50%) translateZ(-18px) rotateX(72deg);
+  animation: species-marker-shadow 4.6s ease-in-out infinite;
+  animation-delay: calc(var(--marker-index, 0) * -0.21s);
+  pointer-events: none;
 }
 
 .custom-species-marker .marker-emoji {
+  position: relative;
+  isolation: isolate;
   width: 46px !important;
   height: 46px !important;
+  overflow: visible;
   font-size: 25px !important;
-  background: rgba(255, 255, 255, 0.96) !important;
-  border: 2px solid #166534 !important;
-  box-shadow: 0 5px 18px rgba(18, 53, 39, 0.28) !important;
+  background:
+    radial-gradient(circle at var(--shine-x) var(--shine-y), rgba(255,255,255,.98) 0 12%, rgba(255,255,255,.32) 28%, transparent 46%),
+    linear-gradient(145deg, rgba(255,255,255,.98), rgba(226,244,231,.92) 58%, rgba(183,219,194,.9)) !important;
+  border: 1px solid rgba(22, 101, 52, 0.42) !important;
+  box-shadow:
+    0 2px 0 rgba(255,255,255,.9) inset,
+    -3px -4px 10px rgba(255,255,255,.72) inset,
+    4px 6px 12px rgba(22,101,52,.18) inset,
+    0 10px 18px rgba(18,53,39,.24),
+    0 2px 5px rgba(18,53,39,.16) !important;
+  transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateZ(16px);
+  transform-style: preserve-3d;
+  transition: transform .22s cubic-bezier(.2,.75,.25,1), box-shadow .22s ease, border-color .22s ease;
+  will-change: transform;
+}
+
+.custom-species-marker .marker-emoji::before {
+  content: '';
+  position: absolute;
+  inset: 4px;
+  z-index: -1;
+  border: 1px solid rgba(255,255,255,.74);
+  border-radius: inherit;
+  transform: translateZ(5px);
+  pointer-events: none;
+}
+
+.custom-species-marker .marker-emoji::after {
+  content: '';
+  position: absolute;
+  top: 6px;
+  left: 8px;
+  width: 13px;
+  height: 7px;
+  border-radius: 50%;
+  background: rgba(255,255,255,.9);
+  filter: blur(.3px);
+  transform: rotate(-28deg) translateZ(22px);
+  pointer-events: none;
+}
+
+.marker-creature {
+  position: relative;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  filter: drop-shadow(0 5px 4px rgba(18,53,39,.23));
+  transform: translateZ(25px);
+  transform-origin: 50% 65%;
+  animation: creature-breathe 2.8s ease-in-out infinite;
+  animation-delay: calc(var(--marker-index, 0) * -.17s);
+}
+
+.species-marker--bird .marker-creature {
+  animation-name: bird-glide;
+  animation-duration: 2.25s;
+}
+
+.marker-orbit {
+  position: absolute;
+  left: 50%;
+  top: 23px;
+  width: 58px;
+  height: 21px;
+  margin-left: -29px;
+  z-index: -1;
+  border: 1px solid rgba(22,101,52,.2);
+  border-radius: 50%;
+  transform: rotateX(68deg) translateZ(-4px);
+  animation: marker-orbit-spin 5.8s linear infinite;
+  animation-delay: calc(var(--marker-index, 0) * -.29s);
+  pointer-events: none;
 }
 
 .custom-species-marker .marker-dot {
-  width: 7px !important;
-  height: 7px !important;
-  background: #15803d !important;
-  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.88), 0 2px 8px rgba(18, 53, 39, 0.3) !important;
+  position: relative;
+  z-index: -2;
+  width: 9px !important;
+  height: 9px !important;
+  margin-top: 4px !important;
+  background: radial-gradient(circle at 35% 30%, #dcfce7, #16a34a 52%, #14532d) !important;
+  border: 1px solid rgba(255,255,255,.9);
+  box-shadow: 0 0 0 4px rgba(255,255,255,.7), 0 4px 10px rgba(18,53,39,.3) !important;
+  transform: translateZ(-5px);
+}
+
+.custom-species-marker:hover .marker-emoji,
+.custom-species-marker:focus-visible .marker-emoji {
+  border-color: rgba(21,128,61,.82) !important;
+  box-shadow:
+    0 2px 0 rgba(255,255,255,.95) inset,
+    -3px -4px 10px rgba(255,255,255,.78) inset,
+    4px 7px 14px rgba(22,101,52,.2) inset,
+    0 16px 28px rgba(18,53,39,.28),
+    0 0 0 5px rgba(34,197,94,.1) !important;
+  transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateZ(28px) scale(1.1);
+}
+
+.bottom-strip {
+  left: calc(50% + 42px) !important;
+  max-width: calc(100vw - 112px) !important;
+  perspective: 900px;
+  transform-style: preserve-3d;
+  background: linear-gradient(120deg, rgba(255,255,255,.91), rgba(240,249,241,.82)) !important;
+  border-color: rgba(22,101,52,.13) !important;
+  box-shadow: 0 16px 38px rgba(18,53,39,.13), 0 1px 0 rgba(255,255,255,.9) inset !important;
+}
+
+.bottom-strip .strip-item {
+  --tilt-x: 0deg;
+  --tilt-y: 0deg;
+  position: relative;
+  transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateZ(0);
+  transform-style: preserve-3d;
+  transition: transform .25s cubic-bezier(.2,.75,.25,1), background .25s ease, box-shadow .25s ease !important;
+}
+
+.bottom-strip .strip-item::after {
+  content: '';
+  position: absolute;
+  inset: 5px 8px 7px;
+  z-index: -1;
+  border-radius: 11px;
+  background: radial-gradient(circle at var(--shine-x,30%) var(--shine-y,20%), rgba(255,255,255,.86), transparent 44%);
+  opacity: 0;
+  transform: translateZ(-2px);
+  transition: opacity .25s ease;
+}
+
+.bottom-strip .strip-emoji {
+  filter: drop-shadow(0 5px 4px rgba(18,53,39,.18));
+  transform: translateZ(18px);
+  transition: transform .25s cubic-bezier(.2,.75,.25,1), filter .25s ease !important;
+}
+
+.bottom-strip .strip-name {
+  transform: translateZ(8px);
+  transition: color .25s ease;
+}
+
+.bottom-strip .strip-item:hover,
+.bottom-strip .strip-item--active {
+  background: linear-gradient(145deg, rgba(255,255,255,.78), rgba(220,246,226,.72)) !important;
+  box-shadow: 0 10px 20px rgba(18,53,39,.13), 0 1px 0 rgba(255,255,255,.9) inset;
+  transform: rotateX(var(--tilt-x)) rotateY(var(--tilt-y)) translateY(-5px) translateZ(15px);
+}
+
+.bottom-strip .strip-item:hover::after,
+.bottom-strip .strip-item--active::after {
+  opacity: 1;
+}
+
+.bottom-strip .strip-item:hover .strip-emoji,
+.bottom-strip .strip-item--active .strip-emoji {
+  filter: drop-shadow(0 9px 7px rgba(18,53,39,.22));
+  transform: translateZ(28px) scale(1.12) !important;
+}
+
+.map-container::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 15;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 43%, rgba(220,252,231,.06), transparent 36%),
+    linear-gradient(180deg, rgba(255,255,255,.04), transparent 35%, rgba(20,83,45,.055));
+  box-shadow: inset 0 0 90px rgba(18,53,39,.06);
+}
+
+.left-nav {
+  perspective: 700px;
+  background: linear-gradient(155deg, rgba(255,255,255,.92), rgba(238,248,240,.82)) !important;
+  border-color: rgba(22,101,52,.12) !important;
+  box-shadow: 0 18px 42px rgba(18,53,39,.14), 0 1px 0 rgba(255,255,255,.95) inset;
+}
+
+.left-nav .nav-item {
+  transform: translateZ(0);
+  transition: transform .24s cubic-bezier(.2,.75,.25,1), background .24s ease, box-shadow .24s ease !important;
+}
+
+.left-nav .nav-item:hover {
+  background: linear-gradient(135deg, rgba(255,255,255,.84), rgba(220,246,226,.8)) !important;
+  box-shadow: 0 8px 18px rgba(18,53,39,.12);
+  transform: translateX(3px) translateZ(12px);
+}
+
+.left-nav .nav-item--active {
+  background: linear-gradient(135deg, rgba(220,252,231,.92), rgba(187,247,208,.64)) !important;
+  box-shadow: 0 7px 16px rgba(22,101,52,.13), 0 1px 0 rgba(255,255,255,.9) inset;
+}
+
+.weather-card,
+.legend,
+#bird-data-panel,
+.side-panel > * {
+  border-color: rgba(22,101,52,.12) !important;
+  box-shadow: 0 18px 44px rgba(18,53,39,.12), 0 1px 0 rgba(255,255,255,.9) inset !important;
+}
+
+.weather-card,
+.legend {
+  background: linear-gradient(145deg, rgba(255,255,255,.92), rgba(239,249,241,.84)) !important;
+}
+
+.nav-item:focus-visible,
+.strip-item:focus-visible,
+.custom-species-marker:focus-visible {
+  outline: 3px solid rgba(34,197,94,.34);
+  outline-offset: 3px;
+}
+
+@keyframes species-marker-flight {
+  0%, 100% { transform: translate3d(0, 0, 0) rotateZ(-.7deg); }
+  38% { transform: translate3d(0, -7px, 0) rotateZ(.9deg); }
+  62% { transform: translate3d(1px, -4px, 0) rotateZ(.25deg); }
+}
+
+@keyframes species-marker-shadow {
+  0%, 100% { opacity: .62; transform: translateX(-50%) scaleX(1) rotateX(72deg); }
+  38% { opacity: .3; transform: translateX(-50%) scaleX(.72) rotateX(72deg); }
+  62% { opacity: .42; transform: translateX(-50%) scaleX(.84) rotateX(72deg); }
+}
+
+@keyframes creature-breathe {
+  0%, 100% { transform: translateZ(25px) scale(1) rotateZ(-1deg); }
+  50% { transform: translateZ(31px) scale(1.075) rotateZ(1deg); }
+}
+
+@keyframes bird-glide {
+  0%, 100% { transform: translateZ(25px) rotateZ(-3deg) scale(1); }
+  42% { transform: translateZ(34px) rotateZ(2deg) scale(1.09); }
+  68% { transform: translateZ(29px) rotateZ(-1deg) scale(1.035); }
+}
+
+@keyframes marker-orbit-spin {
+  0% { transform: rotateX(68deg) rotateZ(0deg) translateZ(-4px); opacity: .25; }
+  50% { opacity: .56; }
+  100% { transform: rotateX(68deg) rotateZ(360deg) translateZ(-4px); opacity: .25; }
 }
 
 @media (max-width: 700px) {
@@ -49,7 +310,27 @@
 }
 
 @media (max-width: 520px) {
+  .bottom-strip {
+    left: calc(50% + 40px) !important;
+    max-width: calc(100vw - 100px) !important;
+  }
+
   .legend {
     display: none !important;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .custom-species-marker,
+  .custom-species-marker::before,
+  .marker-creature,
+  .marker-orbit {
+    animation: none !important;
+  }
+
+  .custom-species-marker .marker-emoji,
+  .bottom-strip .strip-item,
+  .bottom-strip .strip-emoji {
+    transition-duration: .01ms !important;
   }
 }
