@@ -129,6 +129,111 @@
   pointer-events: none;
 }
 
+.marker-location-tooltip {
+  position: absolute;
+  left: 50%;
+  bottom: 69px;
+  z-index: 20;
+  display: flex;
+  width: max-content;
+  min-width: 142px;
+  max-width: 210px;
+  padding: 9px 11px;
+  flex-direction: column;
+  gap: 2px;
+  color: #234332;
+  text-align: left;
+  border: 1px solid rgba(22,101,52,.14);
+  border-radius: 11px;
+  background: rgba(255,255,255,.94);
+  box-shadow: 0 12px 30px rgba(18,53,39,.18), 0 1px 0 rgba(255,255,255,.9) inset;
+  opacity: 0;
+  pointer-events: none;
+  transform: translate(-50%, 9px) translateZ(40px) scale(.94);
+  transform-origin: 50% 100%;
+  transition: opacity .2s ease, transform .2s cubic-bezier(.2,.75,.25,1);
+  backdrop-filter: blur(12px);
+}
+
+.marker-location-tooltip::after {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: -5px;
+  width: 9px;
+  height: 9px;
+  border-right: 1px solid rgba(22,101,52,.12);
+  border-bottom: 1px solid rgba(22,101,52,.12);
+  background: rgba(255,255,255,.94);
+  transform: translateX(-50%) rotate(45deg);
+}
+
+.marker-location-tooltip strong {
+  font-size: 12px;
+  line-height: 1.35;
+  color: #14532d;
+}
+
+.marker-location-tooltip small {
+  font-size: 10px;
+  line-height: 1.4;
+  color: #3c5a4a;
+}
+
+.marker-location-tooltip em {
+  font-size: 9px;
+  line-height: 1.35;
+  color: #6b8275;
+  font-style: normal;
+}
+
+.custom-species-marker:hover .marker-location-tooltip,
+.custom-species-marker:focus-visible .marker-location-tooltip {
+  opacity: 1;
+  transform: translate(-50%, 0) translateZ(40px) scale(1);
+}
+
+.species-location-note {
+  position: absolute;
+  top: 20px;
+  left: 96px;
+  z-index: 88;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  color: #315241;
+  border: 1px solid rgba(22,101,52,.11);
+  border-radius: 13px;
+  background: linear-gradient(145deg, rgba(255,255,255,.9), rgba(239,249,241,.82));
+  box-shadow: 0 12px 28px rgba(18,53,39,.11), 0 1px 0 rgba(255,255,255,.9) inset;
+  backdrop-filter: blur(12px);
+  pointer-events: none;
+}
+
+.species-location-note > span:first-child {
+  font-size: 18px;
+  filter: drop-shadow(0 3px 3px rgba(18,53,39,.16));
+}
+
+.species-location-note > span:last-child {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.species-location-note strong {
+  font-size: 11px;
+  line-height: 1.35;
+  color: #166534;
+}
+
+.species-location-note small {
+  font-size: 9px;
+  line-height: 1.35;
+  color: #667d70;
+}
+
 .custom-species-marker .marker-dot {
   position: relative;
   z-index: -2;
@@ -317,6 +422,17 @@
 
   .legend {
     display: none !important;
+  }
+
+  .species-location-note {
+    top: 12px;
+    left: 92px;
+    max-width: calc(100vw - 104px);
+    padding: 7px 9px;
+  }
+
+  .species-location-note small {
+    display: none;
   }
 }
 
