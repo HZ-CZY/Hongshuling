@@ -203,12 +203,31 @@
   gap: 8px;
   padding: 9px 12px;
   color: #315241;
+  font-family: inherit;
+  text-align: left;
   border: 1px solid rgba(22,101,52,.11);
   border-radius: 13px;
   background: linear-gradient(145deg, rgba(255,255,255,.9), rgba(239,249,241,.82));
   box-shadow: 0 12px 28px rgba(18,53,39,.11), 0 1px 0 rgba(255,255,255,.9) inset;
   backdrop-filter: blur(12px);
-  pointer-events: none;
+  cursor: pointer;
+  appearance: none;
+  transition: transform .2s cubic-bezier(.2,.75,.25,1), box-shadow .2s ease, border-color .2s ease;
+}
+
+.species-location-note:hover {
+  border-color: rgba(22,101,52,.24);
+  box-shadow: 0 16px 34px rgba(18,53,39,.16), 0 1px 0 rgba(255,255,255,.94) inset;
+  transform: translateY(-2px);
+}
+
+.species-location-note:active {
+  transform: translateY(0) scale(.98);
+}
+
+.species-location-note:focus-visible {
+  outline: 3px solid rgba(34,197,94,.32);
+  outline-offset: 3px;
 }
 
 .species-location-note > span:first-child {

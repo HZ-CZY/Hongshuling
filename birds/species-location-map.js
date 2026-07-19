@@ -46,11 +46,19 @@
     content.appendChild(tooltip);
   }
 
-  function addMapNote() {
+  function focusVerifiedArea(map) {
+    const zoom = window.innerWidth < 600 ? 12 : 13;
+    map.setZoomAndCenter(zoom, [114.0005, 22.4975]);
+  }
+
+  function addMapNote(map) {
     if (document.querySelector('.species-location-note')) return;
-    const note = document.createElement('div');
+    const note = document.createElement('button');
+    note.type = 'button';
     note.className = 'species-location-note';
-    note.innerHTML = '<span>📍</span><span><strong>物种代表栖息地</strong><small>依据地图地点与生境资料，非实时定位</small></span>';
+    note.title = '回到深圳湾代表栖息地视图';
+    note.innerHTML = '<span>📍</span><span><strong>物种代表栖息地</strong><small>依据地图地点与生境资料，非实时定位 · 点击返回</small></span>';
+    note.addEventListener('click', () => focusVerifiedArea(map));
     document.querySelector('.home')?.appendChild(note);
   }
 
@@ -78,10 +86,9 @@
     });
 
     if (updated !== locations.length) return false;
-    addMapNote();
-    const zoom = window.innerWidth < 600 ? 12 : 13;
-    map.setZoomAndCenter(zoom, [114.0005, 22.4975]);
     window.__verifiedSpeciesLocations = locations;
+    addMapNote(map);
+    focusVerifiedArea(map);
     return true;
   }
 
